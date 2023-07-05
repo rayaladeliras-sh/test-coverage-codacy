@@ -1,0 +1,78 @@
+sequence: new
+sequenceName: creditCardCharges
+comment: get user
+id: getCCUser
+type: sql
+sql: select ucc.USER_ID from USER_CC UCC, users, SELLER_CC_TRANS sct where ucc.user_id=users.id and users.password='862B32796D33C526' and ucc.id=sct.seller_cc_id  and  ucc.ACTIVE = 1 AND ucc.REMEMBER = 1 and sct.LAST_UPDATED_DATE > SYSDATE-90 and rownum=1
+---
+type: sql
+comment: SQL Get User GUID
+verbose: true
+id: sqlGetUserGuid
+minCount: 1
+sql: select default_email, user_cookie_guid, id from users where id={getCCUser:sql.rows[0].user_id}
+---
+id: acceptUserAgreement
+type: java
+class: com.stubhub.global.domain.utils.user.GlobalUserUtil
+method: acceptAllUserAgreement
+parameters: '{EXPR:String.valueOf({sqlGetUserGuid:sql.rows[0].id})}'
+---
+maxRetries: 3
+include: stubhub.iam:web.login
+credentials:
+  username: '{sqlGetUserGuid:sql.rows[0].default_email}'
+  password: 'password'
+---
+maxRetries: 3
+include: stubhub.iam:token.init
+sessionId: '{web.login:response.body.login.session_id}'
+---
+id: fix
+type: fixture
+parameters:
+  auth: 'Bearer JYf0azPrf1RAvhUhpGZudVU9bBEa'
+---
+comment: invalid access
+verbose: true
+id: invalidAccess
+request:
+  method: GET
+  subDomain: api-dev
+  uri: '/accountmanagement/creditcardcharges/v1/seller/{sqlGetUserGuid:sql.rows[0].user_cookie_guid}'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - Authorization: '{fix:parameters.auth}'
+response:
+  code: 403
+---
+comment: success
+verbose: true
+id: success
+request:
+  method: GET
+  subDomain: api-dev
+  uri: '/accountmanagement/creditcardcharges/v1/seller/{sqlGetUserGuid:sql.rows[0].user_cookie_guid}'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 200
+---
+comment: success with criterias
+verbose: true
+id: success2
+request:
+  method: GET
+  subDomain: api-dev
+  uri: '/accountmanagement/creditcardcharges/v1/seller/{sqlGetUserGuid:sql.rows[0].user_cookie_guid}?transactionType=D&fromDate=2018-01-02&toDate=2018-01-01'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 200

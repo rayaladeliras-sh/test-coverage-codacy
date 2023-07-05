@@ -1,0 +1,67 @@
+sequence: new
+sequenceName: getOrderStatus
+id: getOrder
+type: sql
+sql: select t.id,seller_id from stub_trans t inner join users u on t.seller_id=u.id where  u.password='862B32796D33C526' and u.active=1 and rownum=1
+---
+type: sql
+comment: SQL Get User GUID
+verbose: true
+id: sqlGetUserGuid
+minCount: 1
+sql: select default_email, user_cookie_guid from users where id={getOrder:sql.rows[0].seller_id}
+---
+maxRetries: 3
+include: stubhub.iam:web.login
+credentials:
+  username: '{sqlGetUserGuid:sql.rows[0].default_email}'
+  password: 'password'
+---
+maxRetries: 3
+include: stubhub.iam:token.init
+sessionId: '{web.login:response.body.login.session_id}'
+---
+comment: invalid sale id
+verbose: true
+id: badRequest3
+request:
+  method: GET
+  subDomain: api-dev
+  uri: '/accountmanagement/orders/v1/ABC/orderStatus'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 400
+---
+comment: orderNotFound
+verbose: true
+id: orderNotFound
+request:
+  method: GET
+  subDomain: api-dev
+  uri: '/accountmanagement/orders/v1/123456789/orderStatus'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 404
+---
+comment: success
+verbose: true
+id: success
+request:
+  method: GET
+  subDomain: api-dev
+  uri: '/accountmanagement/orders/v1/{getOrder:sql.rows[0].id}/orderStatus'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 200

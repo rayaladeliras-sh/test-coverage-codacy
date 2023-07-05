@@ -1,0 +1,151 @@
+sequence: new
+sequenceName: updatePayment
+comment: get payment id
+verbose: true
+id: getPaymentId
+type: sql
+minCount: 1
+sql: select s.id,s.seller_id,s.disbursement_option_id,payee_email_id,payee_name from SELLER_PAYMENTS s inner join users u on s.seller_id=u.id where u.password='862B32796D33C526' and u.active=1 and rownum=1
+---
+type: sql
+comment: SQL Get User GUID
+verbose: true
+id: sqlGetUserGuid
+minCount: 1
+sql: select default_email, user_cookie_guid from users where id={getPaymentId:sql.rows[0].seller_id}
+---
+maxRetries: 3
+include: stubhub.iam:web.login
+credentials:
+  username: '{sqlGetUserGuid:sql.rows[0].default_email}'
+  password: 'password'
+---
+maxRetries: 3
+include: stubhub.iam:token.init
+sessionId: '{web.login:response.body.login.session_id}'
+---
+comment: invalid payment id
+verbose: true
+id: invalidId
+request:
+  method: PUT
+  subDomain: api-dev
+  uri: '/accountmanagement/payments/v1/1'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+  body:
+      payeeEmailId: 'test@test.com'
+response:
+  code: 404
+---
+comment: update seller id
+type: sql
+sql: update SELLER_PAYMENTS set seller_id=1 where id={getPaymentId:sql.rows[0].id}
+---
+comment: invalidAccess
+verbose: true
+id: invalidAccess
+request:
+  method: PUT
+  subDomain: api-dev
+  uri: '/accountmanagement/payments/v1/{getPaymentId:sql.rows[0].id}'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+  body:
+      payeeEmailId: 'test@test.com'
+response:
+  code: 401
+---
+comment: recover seller id and update status
+type: sql
+sql: update SELLER_PAYMENTS set seller_id={getPaymentId:sql.rows[0].seller_id},SELLER_PAYMENT_STATUS_ID=25 where id={getPaymentId:sql.rows[0].id}
+---
+comment: invalid status
+verbose: true
+id: invalidStatus
+request:
+  method: PUT
+  subDomain: api-dev
+  uri: '/accountmanagement/payments/v1/{getPaymentId:sql.rows[0].id}'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+  body:
+      payeeEmailId: 'test@test.com'
+response:
+  code: 409
+---
+comment: recover status and update DISBURSEMENT_OPTION_ID
+type: sql
+sql: update SELLER_PAYMENTS set SELLER_PAYMENT_STATUS_ID=29,DISBURSEMENT_OPTION_ID=1 where id={getPaymentId:sql.rows[0].id}
+---
+comment: DisbursementOption is not manual
+verbose: true
+id: DisbursementOptionNotManual
+request:
+  method: PUT
+  subDomain: api-dev
+  uri: '/accountmanagement/payments/v1/{getPaymentId:sql.rows[0].id}'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+  body:
+      payeeEmailId: 'test@test.com'
+response:
+  code: 409
+---
+comment: update DISBURSEMENT_OPTION_ID to manual(2)
+type: sql
+sql: update SELLER_PAYMENTS set disbursement_option_id=2 where id={getPaymentId:sql.rows[0].id}
+---
+comment: success when DisbursementOption is manual
+verbose: true
+id: successForReadyToPay
+request:
+  method: PUT
+  subDomain: api-dev
+  uri: '/accountmanagement/payments/v1/{getPaymentId:sql.rows[0].id}'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+  body:
+      payeeEmailId: 'test@test.com'
+response:
+  code: 200
+---
+comment: recover status
+type: sql
+sql: update SELLER_PAYMENTS set SELLER_PAYMENT_STATUS_ID=26 where id={getPaymentId:sql.rows[0].id}
+---
+comment: success when DisbursementOption is manual
+verbose: true
+id: success
+request:
+  method: PUT
+  subDomain: api-dev
+  uri: '/accountmanagement/payments/v1/{getPaymentId:sql.rows[0].id}'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+  body:
+      payeeEmailId: 'test@test.com'
+response:
+  code: 200
+---
+comment: recover payment
+type: sql
+sql: "update SELLER_PAYMENTS set SELLER_PAYMENT_STATUS_ID=26,status='Fund Capture',payee_email_id='{getPaymentId:sql.rows[0].payee_email_id}',payee_name='{getPaymentId:sql.rows[0].payee_name}' where id={getPaymentId:sql.rows[0].id}"

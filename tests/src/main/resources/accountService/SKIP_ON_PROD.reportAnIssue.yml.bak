@@ -1,0 +1,317 @@
+sequence: new
+sequenceName: reprotAnIssue
+id: upsEvent
+include: event/create:byDateRange
+fulfillmentMethod: UPS
+countryCode: US
+startDaysFromNow: 3
+endDaysFromNow: 100
+---
+include: order/create:simple
+id: createOrder
+parameters:
+  - '{upsEvent:java}'
+  - 'UPS'
+---
+comment: get sales
+id: getSaleId
+type : sql
+minCount : 1
+sql : select t.id,seller_id,default_email,secure_tools.decryptuserpwd(PASSWORD) as password,event_id from stub_trans t  inner join users u on t.seller_id=u.id where buyer_order_id={createOrder:java}
+---
+id: fix
+type: fixture
+parameters:
+  auth: 'Bearer JYf0azPrf1RAvhUhpGZudVU9bBEa'
+---
+maxRetries: 3
+include: stubhub.iam:web.login
+credentials:
+  username: '{getSaleId:sql.rows[0].default_email}'
+  password: '{getSaleId:sql.rows[0].password}'
+---
+maxRetries: 3
+include: stubhub.iam:token.init
+sessionId: '{web.login:response.body.login.session_id}'
+---
+comment: invalid access
+verbose: true
+id: invalidAccess
+request:
+  method: POST
+  subDomain: api-dev
+  uri: '/accountmanagement/sales/v1/{getSaleId:sql.rows[0].id}/exception'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - Authorization: '{fix:parameters.auth}'
+  body:
+      reportAnIssue:
+        type: "NOTICKET"
+response:
+  code: 403
+---
+comment: invalid sale id
+verbose: true
+id: invalidSaleId
+request:
+  method: POST
+  subDomain: api-dev
+  uri: '/accountmanagement/sales/v1/ABC/exception'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+  body:
+      reportAnIssue:
+        type: "NOTICKET"
+response:
+  code: 400
+---
+comment: sale not found
+verbose: true
+id: notFound
+request:
+  method: POST
+  subDomain: api-dev
+  uri: '/accountmanagement/sales/v1/1/exception'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+  body:
+      reportAnIssue:
+        type: "NOTICKET"
+response:
+  code: 404
+---
+id: modifiedSellerId
+type : sql
+minCount : 1
+sql : update stub_trans set seller_id=1 where id={getSaleId:sql.rows[0].id}
+---
+comment: invalid seller id
+verbose: true
+id: invalidSellId
+request:
+  method: POST
+  subDomain: api-dev
+  uri: '/accountmanagement/sales/v1/{getSaleId:sql.rows[0].id}/exception'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+  body:
+      reportAnIssue:
+        type: "NOTICKET"
+response:
+  code: 400
+---
+id: recoverSellerId
+type : sql
+minCount : 1
+sql : update stub_trans set seller_id={getSaleId:sql.rows[0].seller_id} where id={getSaleId:sql.rows[0].id}
+---
+comment: report No ticket
+verbose: true
+maxRetries: 0
+id: reportNoTicket
+request:
+  method: POST
+  subDomain: api-dev
+  uri: '/accountmanagement/sales/v1/{getSaleId:sql.rows[0].id}/exception'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+  body:
+    reportAnIssue:
+      type: "NOTICKET"
+response:
+  code: 200
+---
+comment: invalid status
+verbose: true
+id: invalidStatus
+request:
+  method: POST
+  subDomain: api-dev
+  uri: '/accountmanagement/sales/v1/{getSaleId:sql.rows[0].id}/exception'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+  body:
+      reportAnIssue:
+        type: "NOTICKET"
+response:
+  code: 400
+---
+comment: resetStatus
+type : sql
+minCount : 1
+sql : update stub_trans set ORDER_PROC_STATUS_CODE=3000 where id={getSaleId:sql.rows[0].id}
+---
+comment: report REPLACEMENT with error
+verbose: true
+maxRetries: 0
+id: reportReplacementWithError
+request:
+  method: POST
+  subDomain: api-dev
+  uri: '/accountmanagement/sales/v1/{getSaleId:sql.rows[0].id}/exception'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+  body:
+    reportAnIssue:
+      type: "REPLACEMENT"
+response:
+  code: 400
+---
+comment: report REPLACEMENT
+verbose: true
+maxRetries: 0
+id: reportReplacement
+request:
+  method: POST
+  subDomain: api-dev
+  uri: '/accountmanagement/sales/v1/{getSaleId:sql.rows[0].id}/exception'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+  body:
+    reportAnIssue:
+      type: "REPLACEMENT"
+      replacementData:
+        section: ABC
+        row: 1
+        seats:  123
+response:
+  code: 200
+---
+comment: resetStatus
+type : sql
+minCount : 1
+sql : update stub_trans set ORDER_PROC_STATUS_CODE=3000 where id={getSaleId:sql.rows[0].id}
+---
+comment: report inhanddatechange with empty inHandDateChangeData
+verbose: true
+maxRetries: 0
+id: reportInhanddatechangeWithError1
+request:
+  method: POST
+  subDomain: api-dev
+  uri: '/accountmanagement/sales/v1/{getSaleId:sql.rows[0].id}/exception'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+  body:
+    reportAnIssue:
+      type: "INHANDDATECHANGE"
+response:
+  code: 400
+---
+comment: report inhanddatechange with empty newDate
+verbose: true
+maxRetries: 0
+id: reportInhanddatechangeWithError2
+request:
+  method: POST
+  subDomain: api-dev
+  uri: '/accountmanagement/sales/v1/{getSaleId:sql.rows[0].id}/exception'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+  body:
+    reportAnIssue:
+      type: "INHANDDATECHANGE"
+      inHandDateChangeData:
+        originalDate: '2017-03-30'
+response:
+  code: 400
+---
+comment: report inhanddatechange with invalid empty newDate
+verbose: true
+maxRetries: 0
+id: reportInhanddatechangeWithError3
+request:
+  method: POST
+  subDomain: api-dev
+  uri: '/accountmanagement/sales/v1/{getSaleId:sql.rows[0].id}/exception'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+  body:
+    reportAnIssue:
+      type: "INHANDDATECHANGE"
+      inHandDateChangeData:
+        newDate: '2018-03-30'
+response:
+  code: 400
+---
+id: dateAsCustomFormat
+comment: Get current time with custom format
+type: groovy
+parameters:
+  pattern: "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+script: |
+  def dt = org.joda.time.DateTime.now().withZone(org.joda.time.DateTimeZone.UTC)
+  org.joda.time.format.DateTimeFormatter fmt = org.joda.time.format.DateTimeFormat.forPattern(parameters.pattern)
+  String str=fmt.print(dt)
+---
+comment: get event metadata
+verbose: true
+maxRetries: 0
+id: getEventMetadata
+request:
+  method: GET
+  subDomain: api-dev
+  uri: '/inventory/metadata/v1?eventId={getSaleId:sql.rows[0].event_id}'
+  headers:
+    - Accept: application/xml
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 200
+---
+comment: report inhanddatechange success
+verbose: true
+maxRetries: 0
+id: reportInhanddatechange
+request:
+  method: POST
+  subDomain: api-dev
+  uri: '/accountmanagement/sales/v1/{getSaleId:sql.rows[0].id}/exception'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+  body:
+    reportAnIssue:
+      type: "INHANDDATECHANGE"
+      inHandDateChangeData:
+        newDate: '{dateAsCustomFormat:groovy}'
+response:
+  code: 200
+---
+comment: resetStatus
+type : sql
+minCount : 1
+sql : update stub_trans set ORDER_PROC_STATUS_CODE=3000 where id={getSaleId:sql.rows[0].id}

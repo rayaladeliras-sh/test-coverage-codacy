@@ -1,0 +1,72 @@
+sequence: new
+sequenceName: getListing
+comment: Solr List Url
+id: solrQuery
+request:
+  method: GET
+  uri: http://{ENV}ust001.{ENV}.com:8080/solr/sellerInventory/select?q=*:*&rows=1&sort=dateLastIndexed desc
+---
+comment: parse xml field to extract id
+id: extractId
+type: groovy
+parameters: '{solrQuery:response.bodyAsString}'
+script: |
+  response = new XmlParser().parseText(parameters)
+  def id
+  response.result[0].doc[0].each{ node-> if(node.@name == 'id'){id=node.text()}
+
+  }
+  return id
+---
+comment: parse xml field to extract seller id
+id: extractSellerId
+type: groovy
+parameters: '{solrQuery:response.bodyAsString}'
+script: |
+  response = new XmlParser().parseText(parameters)
+    def sellerId
+    response.result[0].doc[0].each{ node-> if(node.@name == 'sellerId'){sellerId=node.text()}
+
+    }
+  return sellerId
+---
+type: sequenceCache
+key: 'userId'
+value: '{extractSellerId:groovy}'
+---
+include: login
+---
+id: fix
+type: fixture
+parameters:
+  auth: 'Bearer JYf0azPrf1RAvhUhpGZudVU9bBEa'
+---
+comment: listingId not found
+verbose: true
+id: listingIdNotFound
+request:
+  method: GET
+  subDomain: api-dev
+  uri: '/accountmanagement/listings/v1/1'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 400
+---
+comment: Get Listing
+verbose: true
+id: getListing
+request:
+  method: GET
+  subDomain: api-dev
+  uri: '/accountmanagement/listings/v1/{extractId:groovy}?includeFees=true'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 200

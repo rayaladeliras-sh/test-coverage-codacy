@@ -1,0 +1,174 @@
+enabled: true
+sequence: new
+sequenceName: updateTaxId
+type : sql
+id : getTaxInfo
+type: sql
+sql: select t.taxpayer_id,user_id,nvl(name_login,default_email) as name_login,user_cookie_guid,user_contact_guid from TAXPAYER t inner join users u on u.id=t.user_id inner join user_contacts c on t.user_id=c.owner_id WHERE TAXPAYER_COLLECT_STATUS_ID=7 and u.password='862B32796D33C526'  and t.active=1 and u.ACTIVE = 1 and c.active=1 and c.user_contact_guid is not null and rownum=1
+---
+enabled: true
+id: fix
+type: fixture
+parameters:
+  auth: 'Bearer JYf0azPrf1RAvhUhpGZudVU9bBEa'
+---
+enabled: true
+comment: invalid access
+id: invalidAccess
+request:
+  method: put
+  subDomain: api-dev
+  scheme: https
+  uri: '/accountmanagement/taxid/v1/'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - Authorization: '{fix:parameters.auth}'
+  body:
+      addressExempted: true
+response:
+  code: 500
+---
+enabled: true
+maxRetries: 3
+include: stubhub.iam:web.login
+credentials:
+  username: '{getTaxInfo:sql.rows[0].name_login}'
+  password: 'password'
+---
+enabled: true
+maxRetries: 3
+include: stubhub.iam:token.init
+sessionId: '{web.login:response.body.login.session_id}'
+---
+enabled: true
+comment: invalid
+id: invalid
+request:
+  method: put
+  subDomain: api-dev
+  scheme: https
+  uri: '/accountmanagement/taxid/v1/'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+  body:
+        addressExempted: false
+response:
+  code: 400
+---
+enabled: true
+comment: inactive TAXPAYER
+type: sql
+sql: update TAXPAYER set active=0 where taxpayer_id={getTaxInfo:sql.rows[0].taxpayer_id}
+---
+enabled: true
+comment: taxpayer not found
+id: taxpayerNotFound
+request:
+  method: put
+  subDomain: api-dev
+  scheme: https
+  uri: '/accountmanagement/taxid/v1/'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+  body:
+        addressExempted: true
+        sellerTaxContactGuid: '{getTaxInfo:sql.rows[0].user_contact_guid}'
+response:
+  code: 404
+---
+enabled: true
+comment: reactive TAXPAYER
+type: sql
+sql: update TAXPAYER set active=1 where taxpayer_id={getTaxInfo:sql.rows[0].taxpayer_id}
+---
+enabled: true
+comment: user contact guid not found
+id: contactGuidNotFound
+request:
+  method: put
+  subDomain: api-dev
+  scheme: https
+  uri: '/accountmanagement/taxid/v1/'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+  body:
+        addressExempted: true
+        sellerTaxContactGuid: '1'
+response:
+  code: 404
+---
+enabled: true
+comment: addressExempted is true
+id: success1
+request:
+  method: put
+  subDomain: api-dev
+  scheme: https
+  uri: '/accountmanagement/taxid/v1/'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+  body:
+        addressExempted: true
+        sellerTaxContactGuid: '{getTaxInfo:sql.rows[0].user_contact_guid}'
+response:
+  code: 200
+---
+enabled: true
+comment: remove tinGuid
+type: sql
+sql: update TAXPAYER set tin_guid=null where taxpayer_id={getTaxInfo:sql.rows[0].taxpayer_id}
+---
+enabled: true
+comment: add tin
+id: success2
+request:
+  method: put
+  subDomain: api-dev
+  scheme: https
+  uri: '/accountmanagement/taxid/v1/'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+  body:
+        addressExempted: false
+        taxId: 11-22-33
+        sellerTaxContactGuid: '{getTaxInfo:sql.rows[0].user_contact_guid}'
+        taxIdType: TIN
+response:
+  code: 200
+---
+enabled: true
+comment: update tin
+id: success3
+request:
+  method: put
+  subDomain: api-dev
+  scheme: https
+  uri: '/accountmanagement/taxid/v1/'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+  body:
+        addressExempted: false
+        taxId: 11-22-44
+        sellerTaxContactGuid: '{getTaxInfo:sql.rows[0].user_contact_guid}'
+        taxIdType: TIN
+response:
+  code: 200

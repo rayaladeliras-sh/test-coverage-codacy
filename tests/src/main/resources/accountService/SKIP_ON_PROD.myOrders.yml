@@ -1,0 +1,71 @@
+sequence: new
+sequenceName: getOpenSales
+comment: Solr List Url
+id: solrQuery
+request:
+  method: GET
+  uri: http://{ENV}uss001.{ENV}.com:8080/solr/sale/select?q=-orderProcSubStatusCode:42+AND+-eventId:24275+AND+-eventId:4180110+AND+eventDate:%5BNOW-1DAYS%20TO%20*%5D+AND+-(cancelled:1+OR+eventStatus:cancelled+OR+orderProcSubStatusCode:38)&facet=true&facet.field=buyerId&rows=0
+---
+comment: parse xml field to extract buyer id
+id: extractBuyerId
+type: groovy
+parameters: '{solrQuery:response.bodyAsString}'
+script: |
+  response = new XmlParser().parseText(parameters)
+  buyerId = response.'lst'[1].'lst'[1].'lst'.'int'[0].@name
+  return buyerId
+---
+type: sequenceCache
+key: 'userId'
+value: '{extractBuyerId:groovy}'
+---
+include: login
+---
+id: fix
+type: fixture
+parameters:
+  auth: 'Bearer JYf0azPrf1RAvhUhpGZudVU9bBEa'
+---
+comment: invaild access
+verbose: true
+id: invalidAccess
+request:
+  method: GET
+  subDomain: api-dev
+  uri: /accountmanagement/orders/v1/buyer/{sqlGetUserGuid:sql.rows[0].user_cookie_guid}
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - Authorization: '{fix:parameters.auth}'
+response:
+  code: 401
+---
+comment: filter
+verbose: true
+id: successWithFilter1
+request:
+  method: GET
+  subDomain: api-dev
+  uri: /accountmanagement/orders/v1/buyer/{sqlGetUserGuid:sql.rows[0].user_cookie_guid}?filters=status:ongoing+AND+orderDate:[2018-1-1 TO 2018-12-31]
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 200
+---
+comment: filter
+verbose: true
+id: successWithFilter2
+request:
+  method: GET
+  subDomain: api-dev
+  uri: /accountmanagement/orders/v1/buyer/{sqlGetUserGuid:sql.rows[0].user_cookie_guid}?filters=status:past&sort=statusdesc
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 200

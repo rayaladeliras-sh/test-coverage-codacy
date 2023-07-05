@@ -1,0 +1,64 @@
+sequence: new
+sequenceName: getListings
+type : sql
+id : getListingId
+include : db/getListingDetail:getListing
+---
+id: fix
+type: fixture
+parameters:
+  auth: 'Bearer JYf0azPrf1RAvhUhpGZudVU9bBEa'
+---
+maxRetries: 3
+include: stubhub.iam:web.login
+credentials:
+  username: '{getListingId:sql.rows[0].default_email}'
+  password: 'password'
+---
+maxRetries: 3
+include: stubhub.iam:token.init
+sessionId: '{web.login:response.body.login.session_id}'
+---
+comment: Get Listings
+verbose: true
+id: getListings
+request:
+  method: GET
+  subDomain: api-dev
+  uri: '/accountmanagement/listings/v1/'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 200
+---
+comment: Get Listings with sellerIds and eventIds
+verbose: true
+id: getListingsWithSellerAndEvent
+request:
+  method: GET
+  subDomain: api-dev
+  uri: '/accountmanagement/listings/v1/?sellerIds={getListingId:sql.rows[0].seller_id}&eventIds={getListingId:sql.rows[0].event_id}&rows=0&start=0&status=PENDING,EXPIRED'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 200
+---
+comment: invalid access
+verbose: true
+id: invalidAccess
+request:
+  method: GET
+  subDomain: api-dev
+  uri: '/accountmanagement/listings/v1/'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - Authorization: '{fix:parameters.auth}'
+response:
+  code: 403

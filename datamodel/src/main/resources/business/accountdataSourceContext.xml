@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:tx="http://www.springframework.org/schema/tx"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+<!--<import resource="classpath:/config/infra/sh-config.xml" />-->
+
+	<bean id="accountSessionFactory" class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean">
+		<property name="dataSource">
+			<ref bean="accountDataSource"/>
+		</property>
+		<property name="annotatedClasses">             
+			<list>                 
+				<value>com.stubhub.domain.account.datamodel.entity.OrderProcStatus</value>
+				<value>com.stubhub.domain.account.datamodel.entity.OrderProcStatusDO</value>
+				<value>com.stubhub.domain.account.datamodel.entity.UsedDiscount</value>
+				<value>com.stubhub.domain.account.datamodel.entity.StubTrans</value>
+				<value>com.stubhub.domain.account.datamodel.entity.UpsTracking</value>
+				<value>com.stubhub.domain.account.datamodel.entity.SellerPayment</value>
+				<value>com.stubhub.domain.account.datamodel.entity.SellerPayments</value>
+				<value>com.stubhub.domain.account.datamodel.entity.SellerPaymentStatusHist</value>
+				<value>com.stubhub.domain.account.datamodel.entity.SellerCcTrans</value>
+				<value>com.stubhub.domain.account.datamodel.entity.CcTransReason</value>
+				<value>com.stubhub.domain.account.datamodel.entity.CcTransGroupReason</value>
+				<value>com.stubhub.domain.account.datamodel.entity.VenueConfigZoneSection</value>
+				<value>com.stubhub.domain.account.datamodel.entity.VenueConfigZones</value>
+				<value>com.stubhub.domain.account.datamodel.entity.AdjustmentReason</value>
+				<value>com.stubhub.domain.account.datamodel.entity.AppliedCreditMemoDO</value>
+				<value>com.stubhub.domain.account.datamodel.entity.EmailLog</value>
+				<value>com.stubhub.domain.account.datamodel.entity.StubnetUsers</value>
+				<value>com.stubhub.domain.account.datamodel.entity.StubTransDetail</value>
+				<value>com.stubhub.domain.account.datamodel.entity.StubTransFmDm</value>
+				<value>com.stubhub.domain.account.datamodel.entity.StubTransTmp</value>
+				<value>com.stubhub.domain.account.datamodel.entity.StubTransSeatTrait</value>
+				<value>com.stubhub.domain.account.datamodel.entity.ListingSeatTrait</value>
+				<value>com.stubhub.domain.account.datamodel.entity.Listing</value>
+				<value>com.stubhub.domain.account.datamodel.entity.TicketSeat</value>
+				<value>com.stubhub.domain.account.datamodel.entity.TransactionCancellation</value>
+				<value>com.stubhub.domain.account.datamodel.entity.StubTransAdjHist</value>
+				<value>com.stubhub.domain.account.datamodel.entity.CcTrans</value>
+				<value>com.stubhub.domain.account.datamodel.entity.Deliveries</value>
+                <value>com.stubhub.domain.account.datamodel.entity.UserContact</value>
+                <value>com.stubhub.domain.account.datamodel.entity.Tin</value>
+                <value>com.stubhub.domain.account.datamodel.entity.TaxPayerDetails</value>
+				<value>com.stubhub.domain.account.datamodel.entity.BrokerLicense</value>
+				<value>com.stubhub.domain.account.datamodel.entity.UserDO</value>
+                <value>com.stubhub.domain.account.datamodel.entity.InventoryData</value>
+                <value>com.stubhub.domain.account.datamodel.entity.SalesTrans</value>
+				<value>com.stubhub.domain.account.datamodel.entity.SystemSettings</value>
+			</list>
+		</property>
+				
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.dialect">org.hibernate.dialect.Oracle10gDialect</prop>
+        		<prop key="hibernate.jdbc.batch_size">100</prop> 
+        		<prop key="hibernate.order_inserts">true</prop>  
+				<prop key="hibernate.order_updates">true</prop>
+		        <prop key="hibernate.show_sql">false</prop>			
+		        <prop key="hibernate.format_sql">true</prop>			
+				<prop key="hibernate.max_fetch_depth">3</prop>
+				<prop key="current_session_context_class">thread</prop>
+
+				<prop key="hibernate.validator.apply_to_ddl">false</prop>
+				<prop key="hibernate.validator.autoregister_listeners">false</prop>
+				
+				<!--TODO-->
+				<prop key="method">PROPAGATION_REQUIRED</prop>
+				<prop key="hibernate.use_sql_comments">false</prop>
+				<prop key="hibernate.connection.release_mode">auto</prop>
+			</props>
+		</property>
+	</bean>	
+	
+	<bean id="accountROSessionFactory" class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean">
+		<property name="dataSource">
+			<ref bean="accountRODataSource"/>
+		</property>
+				
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.dialect">org.hibernate.dialect.Oracle10gDialect</prop>
+        		<prop key="hibernate.jdbc.batch_size">100</prop> 
+        		<prop key="hibernate.order_inserts">true</prop>  
+				<prop key="hibernate.order_updates">true</prop>
+		        <prop key="hibernate.show_sql">false</prop>			
+		        <prop key="hibernate.format_sql">true</prop>			
+				<prop key="hibernate.max_fetch_depth">3</prop>
+				<prop key="current_session_context_class">thread</prop>
+
+				<prop key="hibernate.validator.apply_to_ddl">false</prop>
+				<prop key="hibernate.validator.autoregister_listeners">false</prop>
+				
+				<!--TODO-->
+				<prop key="method">PROPAGATION_REQUIRED</prop>
+				<prop key="hibernate.use_sql_comments">false</prop>
+				<prop key="hibernate.connection.release_mode">auto</prop>
+			</props>
+		</property>
+	</bean>	
+
+ 	<bean id="accountTransactionManager" class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+ 	         <property name="sessionFactory" ref="accountSessionFactory"/>
+    </bean> 
+
+	<tx:annotation-driven transaction-manager="accountTransactionManager" />
+	 
+	<bean id="accountHibernateTemplate" class="org.springframework.orm.hibernate3.HibernateTemplate">
+		<property name="sessionFactory">
+			<ref bean="accountSessionFactory"/>
+		</property>	
+	</bean>	
+	
+	<bean id="accountROHibernateTemplate" class="org.springframework.orm.hibernate3.HibernateTemplate">
+		<property name="sessionFactory">
+			<ref bean="accountROSessionFactory"/>
+		</property>	
+	</bean>	
+
+	<bean id="jdbcStubTemplate" class="com.stubhub.newplatform.common.util.JdbcStubTemplate">
+		<property name="dataSource">
+			<ref bean="accountDataSource" />
+		</property>
+	</bean>
+
+	<beans profile="production">
+		<import resource="classpath:/config/infra/sh-config.xml" />
+		
+		<bean id="accountDataSource" class="org.springframework.jndi.JndiObjectFactoryBean">
+			<property name="jndiName">
+				<value>java:jdbc/stub</value>
+			</property>
+		</bean>
+		
+		<bean id="accountRODataSource" class="org.springframework.jndi.JndiObjectFactoryBean">
+			<property name="jndiName">
+				<value>java:jdbc/stub-readonly</value>
+			</property>
+		</bean>
+	</beans>
+
+	<beans profile="development">
+		<import resource="${DEVELOP_RESOURCE_HOME}/sh-config.xml" />
+		
+		<bean id="accountDataSource" class="org.springframework.jndi.JndiObjectFactoryBean">
+			<property name="jndiName">
+				<value>java:comp/env/jdbc/stub</value>
+			</property>
+		</bean>
+		
+		<bean id="accountRODataSource" class="org.springframework.jndi.JndiObjectFactoryBean">
+			<property name="jndiName">
+				<value>java:comp/env/jdbc/stub-readonly</value>
+			</property>
+		</bean>
+	</beans>
+
+</beans>

@@ -1,0 +1,144 @@
+shared: true
+verbose: true
+sequence: new
+sequenceName: updatePaymentStatus
+---
+sequence: new
+sequenceName: updatePaymentStatus1
+type: sql
+id: getSellerIdHasHoldPayment
+username: stub_app_01
+password: dstub_app_01
+sql: "select distinct seller_id from seller_payments where seller_payment_status_id = 28 and rownum = 1"
+minCount: 1
+---
+type: sql
+id: getSellerIdHasHoldPaymentMatch
+username: stub_app_01
+password: dstub_app_01
+sql: select seller_id, to_char(last_updated+1, 'yyyy-mm-dd')||'T'||to_char(last_updated+1, 'hh24:mi:ss')||'.000+0000' as last_updated from (select seller_id, last_updated from seller_payments where seller_payment_status_id = 28 and seller_id not in ({getSellerIdHasHoldPayment:sql.rows[0].seller_id}) order by last_updated desc) where rownum =1
+minCount: 1
+---
+type: sql
+id: getSellerIdHasHoldPaymentNotMatch
+username: stub_app_01
+password: dstub_app_01
+sql: select seller_id, to_char(last_updated-1, 'yyyy-mm-dd')||'T'||to_char(last_updated-1, 'hh24:mi:ss')||'.000+0000' as last_updated from (select seller_id, last_updated from seller_payments where seller_payment_status_id = 28 and seller_id not in ({getSellerIdHasHoldPayment:sql.rows[0].seller_id}, {getSellerIdHasHoldPaymentMatch:sql.rows[0].seller_id}) order by last_updated asc) where rownum =1
+minCount: 1
+---
+id: userIdIsNull
+comment: invaild request, nothing updated, 404
+request:
+  scheme: https
+  method: POST
+  subDomain: api-dev
+  headers:
+    - Accept: 'application/json'
+    - Content-Type: 'application/json'
+    - Authorization: 'Bearer JYf0azPrf1RAvhUhpGZudVU9bBEa'
+  uri: '/accountmanagement/payments/v1/statusController'
+  body:
+    action: 'RELEASE_PAYMENT_FOR_DUE_DILIGENCE'
+    latestPaymentDate: '2017-01-01T09:29:15.000+0000'
+response:
+  code: 404
+---
+id: actionIsNull
+comment: invaild request, nothing updated, 404
+request:
+  scheme: https
+  method: POST
+  subDomain: api-dev
+  headers:
+    - Accept: 'application/json'
+    - Content-Type: 'application/json'
+    - Authorization: 'Bearer JYf0azPrf1RAvhUhpGZudVU9bBEa'
+  uri: '/accountmanagement/payments/v1/statusController'
+  body:
+    userId: 85757610
+    latestPaymentDate: '2017-01-01T09:29:15.000+0000'
+response:
+  code: 404
+
+---
+id: userNotExist
+comment: update holdDueToDD to ReadyToPay, seller not have hold payments, nothing updated 200
+request:
+  scheme: https
+  method: POST
+  subDomain: api-dev
+  headers:
+    - Accept: 'application/json'
+    - Content-Type: 'application/json'
+    - Authorization: 'Bearer JYf0azPrf1RAvhUhpGZudVU9bBEa'
+  uri: '/accountmanagement/payments/v1/statusController'
+  body:
+    userId: 857576100000000001
+    action: 'RELEASE_PAYMENT_FOR_DUE_DILIGENCE'
+    latestPaymentDate: '2017-01-01T09:29:15.000+0000'
+response:
+  code: 200
+  payments : []
+---
+id: updateToReadyToPayNoLatestPaymentDate
+comment: update holdDueToDD to ReadyToPay no LatestPaymentDate, will update all hold payments, 200
+request:
+  scheme: https
+  method: POST
+  subDomain: api-dev
+  headers:
+    - Accept: 'application/json'
+    - Content-Type: 'application/json'
+    - Authorization: 'Bearer JYf0azPrf1RAvhUhpGZudVU9bBEa'
+  uri: '/accountmanagement/payments/v1/statusController'
+  body:
+    userId: '{getSellerIdHasHoldPayment:sql.rows[0].seller_id}'
+    action: 'RELEASE_PAYMENT_FOR_DUE_DILIGENCE'
+response:
+  code: 200
+  bodyMatch: contains
+  body:
+    payments:
+      [ID: '{regexp:[0-9]+}']
+
+---
+id: updateToReadyToPayWithLatestPaymentDate
+comment: update holdDueToDD to ReadyToPay and match condition LatestPaymentDate, will update matched hold payments 200
+request:
+  scheme: https
+  method: POST
+  subDomain: api-dev
+  headers:
+    - Accept: 'application/json'
+    - Content-Type: 'application/json'
+    - Authorization: 'Bearer JYf0azPrf1RAvhUhpGZudVU9bBEa'
+  uri: '/accountmanagement/payments/v1/statusController'
+  body:
+    userId: '{getSellerIdHasHoldPaymentMatch:sql.rows[0].seller_id}'
+    action: 'RELEASE_PAYMENT_FOR_DUE_DILIGENCE'
+    latestPaymentDate: '{getSellerIdHasHoldPaymentMatch:sql.rows[0].last_updated}'
+response:
+  code: 200
+  bodyMatch: contains
+  body:
+    payments:
+      [ID: '{regexp:[0-9]+}']
+---
+id: updateToReadyToPayWithLatestPaymentDateNotMatch
+comment: update holdDueToDD to ReadyToPay but not match condition LatestPaymentDate, nothing updated, 200
+request:
+  scheme: https
+  method: POST
+  subDomain: api-dev
+  headers:
+    - Accept: 'application/json'
+    - Content-Type: 'application/json'
+    - Authorization: 'Bearer JYf0azPrf1RAvhUhpGZudVU9bBEa'
+  uri: '/accountmanagement/payments/v1/statusController'
+  body:
+    userId: '{getSellerIdHasHoldPaymentNotMatch:sql.rows[0].seller_id}'
+    action: 'RELEASE_PAYMENT_FOR_DUE_DILIGENCE'
+    latestPaymentDate: '{getSellerIdHasHoldPaymentNotMatch:sql.rows[0].last_updated}'
+response:
+  code: 200
+  payments : []

@@ -1,0 +1,83 @@
+sequence: new
+sequenceName: exportPayments
+comment: Solr List Url
+verbose: true
+id: solrQueryForSellerId
+request:
+  method: GET
+  uri: http://{ENV}usp001.{ENV}.com:8080/solr/payment/select?q=currencyCode:USD&facet=true&facet.field=sellerId&rows=0
+---
+comment: parse xml field to extract seller id
+id: extractSellerId
+type: groovy
+parameters: '{solrQueryForSellerId:response.bodyAsString}'
+script: |
+  response = new XmlParser().parseText(parameters)
+  sellerId = response.'lst'[1].'lst'[1].'lst'.'int'[0].@name
+  return sellerId
+---
+type: sequenceCache
+key: 'userId'
+value: '{extractSellerId:groovy}'
+---
+include: login
+---
+id: fix
+type: fixture
+parameters:
+  auth: 'Bearer JYf0azPrf1RAvhUhpGZudVU9bBEa'
+---
+comment: invalidAccess
+verbose: true
+id: invalidAccess
+request:
+  method: GET
+  subDomain: api-dev
+  uri: '/accountmanagement/payments/v1/export/seller/{sqlGetUserGuid:sql.rows[0].user_cookie_guid}'
+  headers:
+    - Content-Type: application/json
+    - Authorization: '{fix:parameters.auth}'
+response:
+  code: 500
+---
+comment: export as PDF
+verbose: true
+id: pdf
+request:
+  method: GET
+  subDomain: api-dev
+  uri: '/accountmanagement/payments/v1/export/seller/{sqlGetUserGuid:sql.rows[0].user_cookie_guid}?currencyCode=USD&fileType=PDF&fromDateUnits=180&toDateUnits=1&dateUnit=DAYS'
+  headers:
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 200
+---
+comment: export as TXT
+verbose: true
+id: txt
+request:
+  method: GET
+  subDomain: api-dev
+  uri: '/accountmanagement/payments/v1/export/seller/{sqlGetUserGuid:sql.rows[0].user_cookie_guid}?currencyCode=USD&fileType=TXT&fromDateUnits=180&toDateUnits=1&dateUnit=DAYS'
+  headers:
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 200
+---
+comment: export as CSV
+verbose: true
+id: cxv
+request:
+  method: GET
+  subDomain: api-dev
+  uri: '/accountmanagement/payments/v1/export/seller/{sqlGetUserGuid:sql.rows[0].user_cookie_guid}?currencyCode=USD&fileType=CSV&fromDateUnits=180&toDateUnits=1&dateUnit=DAYS'
+  headers:
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 200

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE web-app PUBLIC
+        "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
+        "http://java.sun.com/dtd/web-app_2_3.dtd">
+<web-app>
+	<display-name>Account Service</display-name>
+	<context-param>
+		<param-name>contextConfigLocation</param-name>
+		<param-value>
+			WEB-INF/cxf-bean.xml,
+			WEB-INF/endpointContext.xml
+		</param-value>
+	</context-param>
+
+	<context-param>
+		<param-name>initializeContextOnStartup</param-name>
+		<param-value>true</param-value>
+	</context-param>
+
+	<context-param>
+		<param-name>spring.profiles.default</param-name>
+		<param-value>production</param-value>
+	</context-param>
+	<context-param>
+		<param-name>spring.profile.active</param-name>
+		<param-value>${spring.profile.active}</param-value>
+	</context-param>
+
+	<filter> <!-- Should always be the first filter. This injects "dye" into ever request 
+			for better tracebility -->
+		<filter-name>dyeFilter</filter-name>
+		<filter-class>com.stubhub.newplatform.http.filter.DyeHttpFilter</filter-class>
+	</filter>
+
+	<!-- Removing the Integrate Spring Security; see stubhub-webservice-security-context.xml 
+		Need to Add Security Context from API Gateway -->
+
+	<!--<filter> <filter-name>springSecurityFilterChain</filter-name> <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class> 
+		</filter> -->
+
+	<!-- <filter> -->
+	<!-- <filter-name>securityContextFilter</filter-name> -->
+	<!-- <filter-class>com.stubhub.platform.utilities.webservice.security.ExtendedSecurityContextFilter</filter-class> -->
+	<!-- </filter> -->
+
+	<filter>
+		<filter-name>filterChainProxy</filter-name>
+		<filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+	</filter>
+
+	<filter-mapping>
+		<filter-name>dyeFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+	<!-- <filter-mapping> -->
+	<!-- <filter-name>securityContextFilter</filter-name> -->
+	<!-- <url-pattern>/*</url-pattern> -->
+	<!-- </filter-mapping> -->
+
+	<!--<filter-mapping> <filter-name>springSecurityFilterChain</filter-name> 
+		<url-pattern>/*</url-pattern> </filter-mapping> -->
+
+	<filter-mapping>
+		<filter-name>filterChainProxy</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+	<listener>
+		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+	</listener>
+
+
+	<servlet>
+		<servlet-name>CXFServlet</servlet-name>
+		<display-name>CXFServlet</display-name>
+		<description>Apache CXF Endpoint</description>
+		<servlet-class>org.apache.cxf.transport.servlet.CXFServlet</servlet-class>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>CXFServlet</servlet-name>
+		<url-pattern>/*</url-pattern>
+	</servlet-mapping>
+
+	<resource-ref>
+		<description>stub</description>
+		<res-ref-name>jdbc/stub</res-ref-name>
+		<res-type>javax.sql.DataSource</res-type>
+		<res-auth>Container</res-auth>
+	</resource-ref>
+
+	<resource-ref>
+		<description>stub readonly</description>
+		<res-ref-name>jdbc/stub-readonly</res-ref-name>
+		<res-type>javax.sql.DataSource</res-type>
+		<res-auth>Container</res-auth>
+	</resource-ref>
+
+</web-app>

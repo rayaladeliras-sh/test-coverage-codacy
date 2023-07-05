@@ -1,0 +1,78 @@
+sequence: new
+sequenceName: getEmail
+include : db/getEmail
+---
+id: acceptUserAgreement
+type: java
+class: com.stubhub.global.domain.utils.user.GlobalUserUtil
+method: acceptAllUserAgreement
+parameters: '{EXPR:String.valueOf({getEmail:sql.rows[0].userId})}'
+---
+id: getAssertion
+include: apigateway/get:assertion
+username: '{getEmail:sql.rows[0].name_login}'
+password: 'password'
+---
+comment: getEmailById
+id: getEmailById
+request:
+  method: get
+  subDomain: api-int
+  scheme: https
+  uri: '/accountmanagement/emails/v1/{getEmail:sql.rows[0].id}'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - assertion: '{getAssertion:java.value}'
+    - X-SH-Service-Context: '{role=R1}'
+response:
+  code: 200
+---
+  comment: Email id is invalid number
+  id: invalidEmailId
+  request:
+    method: get
+    subDomain: api-int
+    scheme: https
+    uri: '/accountmanagement/emails/v1/ABC'
+    headers:
+      - Accept: application/json
+      - Content-Type: application/json
+      - assertion: '{getAssertion:java.value}'
+      - X-SH-Service-Context: '{role=R1}'
+  response:
+    code: 400
+---
+  comment: Email id is not exist
+  id: emailIdNotExist
+  request:
+    method: get
+    subDomain: api-int
+    scheme: https
+    uri: '/accountmanagement/emails/v1/1'
+    headers:
+      - Accept: application/json
+      - Content-Type: application/json
+      - assertion: '{getAssertion:java.value}'
+      - X-SH-Service-Context: '{role=R1}'
+  response:
+    code: 200
+---
+id: fix
+type: fixture
+parameters:
+  auth: 'Bearer JYf0azPrf1RAvhUhpGZudVU9bBEa'
+---
+  comment: invalid access
+  id: invalidAccess
+  request:
+    method: get
+    subDomain: api-int
+    scheme: https
+    uri: '/accountmanagement/emails/v1/1'
+    headers:
+      - Accept: application/json
+      - Content-Type: application/json
+      - Authorization: '{fix:parameters.auth}'
+  response:
+    code: 403

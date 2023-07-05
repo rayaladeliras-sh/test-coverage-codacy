@@ -1,0 +1,21 @@
+sequence: new
+sequenceName: evaluatePIRule
+id: fix
+type: fixture
+parameters:
+  auth: 'Bearer JYf0azPrf1RAvhUhpGZudVU9bBEa'
+---
+comment: success
+verbose: true
+id: success
+request:
+  method: GET
+  subDomain: api-dev
+  uri: '/accountmanagement/payments/v1/pi/1?rule=VALIDATE_15K_REQUIRED'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - Authorization: '{fix:parameters.auth}'
+response:
+  code: 200
+---

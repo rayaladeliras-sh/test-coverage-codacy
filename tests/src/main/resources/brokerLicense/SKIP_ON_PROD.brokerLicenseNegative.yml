@@ -1,0 +1,210 @@
+sequence: new
+sequenceName: testBrokerLicenseNegative
+id: prepareSeller
+include: user/create:withCCAndPaypal
+ccType: Visa
+countryCode: US
+---
+id: getSellerTokens
+include: apigateway/get:authTokens
+username: '{prepareSeller:java.email}'
+password: '{prepareSeller:java.password}'
+---
+id: createBrokerLicenseWithInvalidSellerGuid
+verbose: true
+request:
+  method: post
+  subDomain: api-dev
+  scheme: https
+  uri: '/accountmanagement/brokerlicense/v1/seller/DEF8394HGJF'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - Cookie: '{getSellerTokens:java.shUTCookie}'
+    - x-csrf-token: '{getSellerTokens:java.csrfToken}'
+  body:
+    brokerLicenseNumber: "13467dhfj"
+    countryCode: "US"
+    stateCode: "NY"
+response:
+  code: 403
+---
+id: createBrokerLicenseWithoutBody
+verbose: true
+request:
+  method: post
+  subDomain: api-dev
+  scheme: https
+  uri: '/accountmanagement/brokerlicense/v1/seller/{getSellerTokens:java.userGUID}'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - Cookie: '{getSellerTokens:java.shUTCookie}'
+    - x-csrf-token: '{getSellerTokens:java.csrfToken}'
+response:
+  code: 500
+---
+id: createBrokerLicenseWithoutBrokerLicenseNumber
+verbose: true
+request:
+  method: post
+  subDomain: api-dev
+  scheme: https
+  uri: '/accountmanagement/brokerlicense/v1/seller/{getSellerTokens:java.userGUID}'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - Cookie: '{getSellerTokens:java.shUTCookie}'
+    - x-csrf-token: '{getSellerTokens:java.csrfToken}'
+  body:
+    stateCode: "NY"
+    countryCode: "US"
+response:
+  code: 400
+---
+id: createBrokerLicenseWithoutCountry
+verbose: true
+request:
+  method: post
+  subDomain: api-dev
+  scheme: https
+  uri: '/accountmanagement/brokerlicense/v1/seller/{getSellerTokens:java.userGUID}'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - Cookie: '{getSellerTokens:java.shUTCookie}'
+    - x-csrf-token: '{getSellerTokens:java.csrfToken}'
+  body:
+    brokerLicenseNumber: "13467dhfj3l5"
+    stateCode: "NY"
+response:
+  code: 400
+---
+id: createBrokerLicenseWithoutState
+verbose: true
+request:
+  method: post
+  subDomain: api-dev
+  scheme: https
+  uri: '/accountmanagement/brokerlicense/v1/seller/{getSellerTokens:java.userGUID}'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - Cookie: '{getSellerTokens:java.shUTCookie}'
+    - x-csrf-token: '{getSellerTokens:java.csrfToken}'
+  body:
+    brokerLicenseNumber: "13467dhfj3l5"
+    countryCode: "US"
+response:
+  code: 400
+---
+id: createBrokerLicenseWithTooLongNumber
+verbose: true
+request:
+  method: post
+  subDomain: api-dev
+  scheme: https
+  uri: '/accountmanagement/brokerlicense/v1/seller/{getSellerTokens:java.userGUID}'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - Cookie: '{getSellerTokens:java.shUTCookie}'
+    - x-csrf-token: '{getSellerTokens:java.csrfToken}'
+  body:
+    brokerLicenseNumber: "13467dhfj3l53959867302j"
+    countryCode: "US"
+    stateCode: "NY"
+response:
+  code: 400
+---
+id: updateBrokerLicenseWithoutBody
+verbose: true
+request:
+  method: put
+  subDomain: api-dev
+  scheme: https
+  uri: '/accountmanagement/brokerlicense/v1/seller/{getSellerTokens:java.userGUID}'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - Cookie: '{getSellerTokens:java.shUTCookie}'
+    - x-csrf-token: '{getSellerTokens:java.csrfToken}'
+response:
+  code: 500
+---
+id: updateBrokerLicenseWithoutBrokerLicenseNumber
+verbose: true
+request:
+  method: post
+  subDomain: api-dev
+  scheme: https
+  uri: '/accountmanagement/brokerlicense/v1/seller/{getSellerTokens:java.userGUID}'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - Cookie: '{getSellerTokens:java.shUTCookie}'
+    - x-csrf-token: '{getSellerTokens:java.csrfToken}'
+  body:
+    userBrokerLicenseId: 1234567
+    stateCode: "NY"
+    countryCode: "US"
+response:
+  code: 400
+---
+id: updateBrokerLicenseWithoutCountry
+verbose: true
+request:
+  method: put
+  subDomain: api-dev
+  scheme: https
+  uri: '/accountmanagement/brokerlicense/v1/seller/{getSellerTokens:java.userGUID}'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - Cookie: '{getSellerTokens:java.shUTCookie}'
+    - x-csrf-token: '{getSellerTokens:java.csrfToken}'
+  body:
+    userBrokerLicenseId: 1234567
+    brokerLicenseNumber: "13467dhfj3l5"
+    stateCode: "NY"
+response:
+  code: 400
+---
+id: updateBrokerLicenseWithoutState
+verbose: true
+request:
+  method: put
+  subDomain: api-dev
+  scheme: https
+  uri: '/accountmanagement/brokerlicense/v1/seller/{getSellerTokens:java.userGUID}'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - Cookie: '{getSellerTokens:java.shUTCookie}'
+    - x-csrf-token: '{getSellerTokens:java.csrfToken}'
+  body:
+    userBrokerLicenseId: 1234567
+    brokerLicenseNumber: "13467dhfj3l5"
+    countryCode: "US"
+response:
+  code: 400
+---
+id: updateBrokerLicenseWithTooLongNumber
+verbose: true
+request:
+  method: put
+  subDomain: api-dev
+  scheme: https
+  uri: '/accountmanagement/brokerlicense/v1/seller/{getSellerTokens:java.userGUID}'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - Cookie: '{getSellerTokens:java.shUTCookie}'
+    - x-csrf-token: '{getSellerTokens:java.csrfToken}'
+  body:
+    userBrokerLicenseId: 1234567
+    brokerLicenseNumber: "13467dhfj3l53959867302j"
+    countryCode: "US"
+    stateCode: "NY"
+response:
+  code: 400

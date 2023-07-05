@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE Configure PUBLIC "-//Mort Bay Consulting//DTD Configure//EN"
+        "http://jetty.mortbay.org/configure.dtd">
+<Configure class="org.mortbay.jetty.webapp.WebAppContext">
+    <New id="dataSource" class="org.mortbay.jetty.plus.naming.Resource">
+        <Arg>jdbc/stub</Arg>
+        <Arg>
+            <New class="oracle.jdbc.pool.OracleConnectionPoolDataSource">
+                <Set name="URL">jdbc:oracle:thin:@(DESCRIPTION=(SDU=32676)(ADDRESS_LIST = (LOAD_BALANCE=ON) (FAILOVER=ON) (ADDRESS=(PROTOCOL=TCP)(HOST=slce009ecommdb.stubcorp.com)(PORT=1521)(SEND_BUF_SIZE=125000)(RECV_BUF_SIZE=125000)) (ADDRESS=(PROTOCOL=TCP)(HOST=slce009ecommdb.stubcorp.com)(PORT=1521)(SEND_BUF_SIZE=125000)(RECV_BUF_SIZE=125000)) (ADDRESS=(PROTOCOL=TCP)(HOST=slce009ecommdb.stubcorp.com)(PORT=1521)(SEND_BUF_SIZE=125000)(RECV_BUF_SIZE=125000))) (CONNECT_DATA =(SERVER = DEDICATED) (SERVICE_NAME = LIGHTNING)(FAILOVER_MODE = (TYPE=SELECT)(METHOD=BASIC)(RETRIES=20)(DELAY=5))))</Set>
+                <Set name="user">stub</Set>
+                <Set name="password">stub123#</Set>
+            </New>
+        </Arg>
+    </New>
+    <New id="dataSourceRO" class="org.mortbay.jetty.plus.naming.Resource">
+        <Arg>jdbc/stub-readonly</Arg>
+        <Arg>
+            <New class="oracle.jdbc.pool.OracleConnectionPoolDataSource">
+                <Set name="URL">jdbc:oracle:thin:@(DESCRIPTION=(SDU=32676)(ADDRESS_LIST = (LOAD_BALANCE=ON) (FAILOVER=ON) (ADDRESS=(PROTOCOL=TCP)(HOST=slce009ecommdb.stubcorp.com)(PORT=1521)(SEND_BUF_SIZE=125000)(RECV_BUF_SIZE=125000)) (ADDRESS=(PROTOCOL=TCP)(HOST=slce009ecommdb.stubcorp.com)(PORT=1521)(SEND_BUF_SIZE=125000)(RECV_BUF_SIZE=125000)) (ADDRESS=(PROTOCOL=TCP)(HOST=slce009ecommdb.stubcorp.com)(PORT=1521)(SEND_BUF_SIZE=125000)(RECV_BUF_SIZE=125000))) (CONNECT_DATA =(SERVER = DEDICATED) (SERVICE_NAME = LIGHTNING)(FAILOVER_MODE = (TYPE=SELECT)(METHOD=BASIC)(RETRIES=20)(DELAY=5))))</Set>
+                <Set name="user">stub</Set>
+                <Set name="password">stub123#</Set>
+            </New>
+        </Arg>
+    </New>
+</Configure>

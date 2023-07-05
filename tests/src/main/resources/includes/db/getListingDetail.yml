@@ -1,0 +1,4 @@
+type : sql
+id : getListing
+minCount : 1
+sql : select t.id,seller_id,event_id,default_email from tickets t inner join users u on t.seller_id=u.id where u.password='862B32796D33C526' and u.active=1 and rownum=1

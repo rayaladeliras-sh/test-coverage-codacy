@@ -1,0 +1,149 @@
+{
+  "response": {
+    "numFound": 905,
+    "docs": [
+      {
+        "orderProcSortingSequence": 7,
+        "vatLogFee": 0,
+        "fedexTrackingNumber": "1Z18V5310268189941",
+        "discountCost": 0,
+        "vatBuyPrcnt": 0,
+        "rowDesc": "T",
+        "statsPricePerTicket": 299,
+        "id": 207017070,
+        "state": "IL",
+        "subbedInd": 0,
+        "buyerOrderId": 502770136,
+        "bobId": 1,
+        "ticketMediumId": 1,
+        "shipDate": "2017-01-14T01:30:00+0000",
+        "vatSellPrcnt": 0,
+        "eventName_en_US": "Hamilton Chicago Tickets",
+        "earliestPossibleInhandDate": "2016-02-19T16:42:34+0000",
+        "seat": [
+          "114",
+          "115"
+        ],
+        "defaultLocale": "en_US",
+        "venueName_en_US": "PrivateBank Theatre",
+        "performerIdNameFacet": "1508805|performer|Hamilton Chicago",
+        "inhandInd": 0,
+        "categoryStatus": "active",
+        "cancelled": 0,
+        "deliveriesInhandDate": "2017-01-12T01:30:00+0000",
+        "ticketId": 1233940603,
+        "groupingName_en_GB": "Hamilton",
+        "groupingStatus": "active",
+        "soldDate": "2016-12-23T15:15:03+0000",
+        "city": "Chicago",
+        "categoryName_en_US": "Musicals",
+        "performerId": 1508805,
+        "latestPossibleInhandDate": "2017-01-12T01:30:00+0000",
+        "confirmedInd": 1,
+        "performerStatus": "active",
+        "venueId": 7883,
+        "eventIdNameFacet": "9529537|Hamilton Chicago Tickets",
+        "sellerSectionName": "ORCH-C",
+        "sellerFeeVal": 0,
+        "eventNameSort": "Hamilton Chicago Tickets",
+        "venueName_en_GB": "PrivateBank Theatre",
+        "inhandDate": "2017-01-12T01:30:00+0000",
+        "eventStatus": "active",
+        "groupingName_en_US": "Hamilton",
+        "currencyCode": "USD",
+        "ticketCost": 598,
+        "gaInd": [
+          0,
+          0
+        ],
+        "country": "US",
+        "listingSourceId": 10,
+        "deliveryMethodId": 24,
+        "groupingId": 1500226,
+        "venueNameSort": "PrivateBank Theatre",
+        "section": "Orchestra Center",
+        "ticketTypeId": [
+          1,
+          1
+        ],
+        "buyerId": 75013039,
+        "seats": "114,115",
+        "dateAdded": "2016-12-23T15:15:03+0000",
+        "soldQuantity": 2,
+        "categoryName_en_GB": "Musicals",
+        "sellerId": 613123,
+        "dateLastModified": "2016-12-27T23:18:17+0000",
+        "vatSellFee": 0,
+        "jdkTimezone": "US/Central",
+        "externalListingId": "12611359",
+        "eventId": 9529537,
+        "orderProcSubStatusDesc": "Delivered",
+        "saleMethodId": 1,
+        "shippingFeeCost": 10.5,
+        "deliveryOptionId": 2,
+        "venueIdNameFacet": "7883|PrivateBank Theatre",
+        "confirmOptionId": 3,
+        "sellerContactId": 505459,
+        "performerName_en_GB": "Hamilton Chicago",
+        "performerIdFacet": "1508805|performer",
+        "totalCost": 752.02,
+        "eventDate": "2017-01-19T01:30:00+0000",
+        "buyerFeeCost": 143.52,
+        "vatLogPrcnt": 0,
+        "orderProcSubStatusCode": 13,
+        "fraudCheckStatusId": 500,
+        "locale": [
+          "en_GB",
+          "en_US"
+        ],
+        "buyerShippingContactId": 212000305,
+        "vatBuyFee": 0,
+        "fulfillmentMethodId": 10,
+        "sellerPayoutAmount": 598,
+        "orderProcStatusId": 5000,
+        "sellerPaymentTypeId": 5,
+        "hideEventTime": "false",
+        "eventName_en_GB": "Hamilton Chicago Tickets",
+        "saleMethod": "Fixed Price",
+        "quantity": 2,
+        "expectedDeliveryDate": "2017-01-16T20:00:00+0000",
+        "seatTraits": [
+          "|||"
+        ],
+        "statsCostPerTicket": 376.01,
+        "transactionDate": "2016-12-23T15:15:03+0000",
+        "performerName_en_US": "Hamilton Chicago",
+        "pricePerTicket": 299,
+        "eventDateLocal": "2017-01-18T19:30:00+0000",
+        "hideEventDate": "false",
+        "ticketSeatId": [
+          2869464398,
+          2869464399
+        ],
+        "venueStatus": "active",
+        "venueConfigSectionsId": 395427,
+        "costPerTicket": 376.01,
+        "categoryId": 700188
+      },
+      {
+      	"lmsApprovalStatusId": 1,
+      	"groupingId": 1,
+      	"seatTraits": [
+          "1,2|3,4|5,6|7,8"
+        ]
+      },
+      {
+      	"categoryId": 1,
+      	"hideEventDate": false,
+        "hideEventTime": false,
+      	"seatTraits": [
+          "1|3,4|5,6|7,8"
+        ]
+      },
+      {
+        "hideEventDate": true,
+        "hideEventTime": true
+      }
+    ]
+  }
+}

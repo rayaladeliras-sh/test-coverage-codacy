@@ -1,0 +1,44 @@
+sequence: new
+sequenceName: deliveryspecification
+id: fix
+type: fixture
+parameters:
+  auth: 'Bearer JYf0azPrf1RAvhUhpGZudVU9bBEa'
+---
+comment: Solr List Url
+id: solrQuery
+request:
+  method: GET
+  uri: http://{ENV}uss001.{ENV}.com:8080/solr/sale/select?q=*:*&rows=1&sort=dateLastIndexed desc
+---
+comment: parse xml field to extract id
+id: extractId
+type: groovy
+parameters: '{solrQuery:response.bodyAsString}'
+script: |
+  response = new XmlParser().parseText(parameters)
+  def id
+  response.result[0].doc[0].each{ node-> if(node.@name == 'id'){id=node.text()}
+
+  }
+  return id
+---
+comment: deliveryspecification
+verbose: true
+id: deliveryspecification
+request:
+  method: POST
+  subDomain: api-int
+  scheme: http
+  uri: '/accountmanagement/deliveryspecification/v1/'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - Authorization: '{fix:parameters.auth}'
+  body:
+    DeliverySpecificationRequest:
+      orders: '{extractId:groovy}'
+      withUserDetails: 1
+      withSeatDetails: 1
+response:
+  code: 200

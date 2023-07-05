@@ -1,0 +1,86 @@
+sequence: new
+sequenceName: testBrokerLicense
+id: prepareSeller
+include: user/create:withCCAndPaypal
+ccType: Visa
+countryCode: US
+---
+id: getSellerTokens
+include: apigateway/get:authTokens
+username: '{prepareSeller:java.email}'
+password: '{prepareSeller:java.password}'
+---
+id: createBrokerLicense
+verbose: true
+request:
+  method: post
+  subDomain: api-dev
+  scheme: https
+  uri: '/accountmanagement/brokerlicense/v1/seller/{getSellerTokens:java.userGUID}'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - Cookie: '{getSellerTokens:java.shUTCookie}'
+    - x-csrf-token: '{getSellerTokens:java.csrfToken}'
+  body:
+    brokerLicenseNumber: "12848dhfj3l5"
+    stateCode: "NY"
+    countryCode: "US"
+response:
+  code: 201
+---
+id: getBrokerLicenses
+verbose: true
+request:
+  method: get
+  subDomain: api-dev
+  scheme: https
+  uri: '/accountmanagement/brokerlicense/v1/seller/{getSellerTokens:java.userGUID}'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - Cookie: '{getSellerTokens:java.shUTCookie}'
+    - x-csrf-token: '{getSellerTokens:java.csrfToken}'
+response:
+  code: 200
+---
+id: updateBrokerLicense
+verbose: true
+request:
+  method: put
+  subDomain: api-dev
+  scheme: https
+  uri: '/accountmanagement/brokerlicense/v1/seller/{getSellerTokens:java.userGUID}'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - Cookie: '{getSellerTokens:java.shUTCookie}'
+    - x-csrf-token: '{getSellerTokens:java.csrfToken}'
+  body:
+    userBrokerLicenseId: '{createBrokerLicense:response.body.userBrokerLicenseId}'
+    brokerLicenseNumber: "13467dhfj3l5"
+    stateCode: "NY"
+    countryCode: "US"
+response:
+  code: 200
+---
+id: deactivateBrokerLicense
+verbose: true
+request:
+  method: put
+  subDomain: api-dev
+  scheme: https
+  uri: '/accountmanagement/brokerlicense/v1/seller/{getSellerTokens:java.userGUID}'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - Cookie: '{getSellerTokens:java.shUTCookie}'
+    - x-csrf-token: '{getSellerTokens:java.csrfToken}'
+  body:
+    userBrokerLicenseId: '{createBrokerLicense:response.body.userBrokerLicenseId}'
+    brokerLicenseNumber: "13467dhfj3l5"
+    stateCode: "NY"
+    countryCode: "US"
+    active: 0
+response:
+  code: 200

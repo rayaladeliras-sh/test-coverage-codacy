@@ -1,0 +1,13 @@
+type: sql
+comment: SQL generate email_logs to make sure there is at least 1 row in email_logs
+verbose: true
+id: sqlGenerateEmailLogs
+sql: |
+      insert into email_logs (id, date_added, addr_to, addr_from, subject, format, read, sent, user_id, created_by, last_updated_by, last_updated_date)
+      values (EMAIL_LOGS_ID_AUTONM_SEQ.nextval, sysdate, 'api_uk_sell_buyer20@testmail.com', 'test@stubhub.com', 'Test email', 'html', 0, 0, 1000000119, 'Test', 'Test', sysdate)
+---
+type : sql
+id : getEmail
+maxRetries: 0
+minCount : 1
+sql : select e.id,u.id as userId,nvl(name_login,default_email) as name_login from (select id,user_id from email_logs where rownum<10000) e inner join users u on e.user_id=u.id where u.password='862B32796D33C526' and u.active=1 and rownum=1

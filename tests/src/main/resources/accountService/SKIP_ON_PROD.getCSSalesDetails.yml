@@ -1,0 +1,220 @@
+sequence: new
+sequenceName: CSSalesDetail
+comment: get sale trans info
+id: getSale
+type: sql
+sql: select tid,buyer_id,default_email,event_date from sales_transactions s inner join users u on u.id=s.buyer_id and u.active=1 and u.password='862B32796D33C526'   where event_date between add_months(sysdate,-6) and add_months(sysdate,6) and  rownum=1
+---
+id: fix
+type: fixture
+parameters:
+  auth: 'Bearer JYf0azPrf1RAvhUhpGZudVU9bBEa'
+---
+id: getAssertion
+include: apigateway/get:assertion
+username: '{getSale:sql.rows[0].default_email}'
+password: 'password'
+---
+comment: invalid access
+verbose: true
+id: invalidAccess
+request:
+  method: POST
+  subDomain: api-int
+  uri: '/accountmanagement/cssaledetails/v1/'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - assertion: '{getAssertion:java.value}'
+  body:
+      csSaleDetailsRequest:
+        saleId: '{getSale:sql.rows[0].tid}'
+response:
+  code: 403
+---
+comment: orderId & proxiedId both empty
+verbose: true
+id: badRequest1
+request:
+  method: POST
+  subDomain: api-int
+  uri: '/accountmanagement/cssaledetails/v1/'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - assertion: '{getAssertion:java.value}'
+    - X-SH-Service-Context: '{role=R1}'
+  body:
+      csSaleDetailsRequest:
+        start: 0
+response:
+  code: 400
+---
+comment: orderId & proxiedId both not empty
+verbose: true
+id: badRequest2
+request:
+  method: POST
+  subDomain: api-int
+  uri: '/accountmanagement/cssaledetails/v1/'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - assertion: '{getAssertion:java.value}'
+    - X-SH-Service-Context: '{role=R1}'
+  body:
+      csSaleDetailsRequest:
+        saleId: 1
+        proxiedId: 1
+response:
+  code: 400
+---
+comment: invalid sale id
+verbose: true
+id: badRequest3
+request:
+  method: POST
+  subDomain: api-int
+  uri: '/accountmanagement/cssaledetails/v1/'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - assertion: '{getAssertion:java.value}'
+    - X-SH-Service-Context: '{role=R1}'
+  body:
+      csSaleDetailsRequest:
+        saleId: 'ABC'
+response:
+  code: 400
+---
+comment: invalid proxiedId
+verbose: true
+id: badRequest4
+request:
+  method: POST
+  subDomain: api-int
+  uri: '/accountmanagement/cssaledetails/v1/'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - assertion: '{getAssertion:java.value}'
+    - X-SH-Service-Context: '{role=R1}'
+  body:
+      csSaleDetailsRequest:
+        proxiedId: 'ABC'
+response:
+  code: 400
+---
+comment: invalid start
+verbose: true
+id: badRequest5
+request:
+  method: POST
+  subDomain: api-int
+  uri: '/accountmanagement/cssaledetails/v1/'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - assertion: '{getAssertion:java.value}'
+    - X-SH-Service-Context: '{role=R1}'
+  body:
+      csSaleDetailsRequest:
+        proxiedId: '1'
+        start: 'ABC'
+response:
+  code: 400
+---
+comment: invalid row
+verbose: true
+id: badRequest6
+request:
+  method: POST
+  subDomain: api-int
+  uri: '/accountmanagement/cssaledetails/v1/'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - assertion: '{getAssertion:java.value}'
+    - X-SH-Service-Context: '{role=R1}'
+  body:
+      csSaleDetailsRequest:
+        proxiedId: '1'
+        row: '1'
+response:
+  code: 400
+---
+comment: get buy sale id
+verbose: true
+id: success1
+request:
+  method: POST
+  subDomain: api-int
+  uri: '/accountmanagement/cssaledetails/v1/'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - assertion: '{getAssertion:java.value}'
+    - X-SH-Service-Context: '{role=R1}'
+  body:
+      csSaleDetailsRequest:
+        saleId: '{getSale:sql.rows[0].tid}'
+response:
+  code: 200
+---
+id: eventStartDate
+comment: event start date
+type: groovy
+include: utils/dateTime:plusDaysAsCustomFormat
+parameters:
+  date: '{getSale:sql.rows[0].event_date}'
+  days: -1
+  pattern: "yyyy-MM-dd"
+  returnPattern: "yyyy-MM-dd"
+---
+id: eventEndDate
+comment: event end date
+type: groovy
+include: utils/dateTime:plusDaysAsCustomFormat
+parameters:
+  date: '{getSale:sql.rows[0].event_date}'
+  days: 1
+  pattern: "yyyy-MM-dd"
+  returnPattern: "yyyy-MM-dd"
+---
+comment: get by buyer id & event date range
+verbose: true
+id: success2
+request:
+  method: POST
+  subDomain: api-int
+  uri: '/accountmanagement/cssaledetails/v1/'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - assertion: '{getAssertion:java.value}'
+    - X-SH-Service-Context: '{role=R1}'
+  body:
+      csSaleDetailsRequest:
+        proxiedId: '{getSale:sql.rows[0].buyer_id}'
+        eventStartDate: '{eventStartDate:groovy}'
+        eventEndDate: '{eventEndDate:groovy}'
+response:
+  code: 200
+---
+comment: get by buyer id
+verbose: true
+id: success3
+request:
+  method: POST
+  subDomain: api-int
+  uri: '/accountmanagement/cssaledetails/v1/'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - assertion: '{getAssertion:java.value}'
+    - X-SH-Service-Context: '{role=R1}'
+  body:
+      csSaleDetailsRequest:
+        proxiedId: '{getSale:sql.rows[0].buyer_id}'
+response:
+  code: 200

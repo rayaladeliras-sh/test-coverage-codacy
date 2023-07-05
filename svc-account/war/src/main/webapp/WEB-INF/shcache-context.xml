@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans 
+    xmlns="http://www.stubhub.com/schema/infrastructure/caching"
+    xmlns:beans="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+           http://www.stubhub.com/schema/infrastructure/caching http://www.stubhub.com/schema/infrastructure/caching/shcache.xsd">
+           
+  <beans:import resource="classpath:business/i18n-utility-jar-caches.xml"/>                
+  <cache-manager id="SHCacheManagerUser">
+     
+    <cluster enabled="true" />
+    <management enabled="true"/>
+    <statistic enabled="false" refresh-interval="600000"/>
+     
+    <!-- Recommended: change default cache configurations to suit application-specific caching needs -->
+    <default-cache name="SHCACHE">
+        <management enabled="true"/>
+        <statistic enabled="false" refresh-interval="600000" />
+        <replication synchronization="ASYNC" mode="REPLICATE_BY_INVALIDATION"/>
+        <expiration tti="0" ttl="0"/>
+        <eviction strategy="LRU" max-entries="0"/>
+    </default-cache>
+    <caches>
+    	<cache name="localizationContent">
+            <management enabled="true"/>
+            <statistic enabled="false"/>
+            <expiration tti="0" ttl="1800"/>
+            <eviction strategy="LRU" max-entries="2000"/>
+        </cache>
+        <cache name="getEventV3">
+            <management enabled="true"/>
+            <statistic enabled="false"/>
+            <expiration tti="0" ttl="3600"/>
+            <eviction strategy="LRU" max-entries="10000"/>
+        </cache>
+    </caches>
+  </cache-manager>
+   
+</beans:beans>

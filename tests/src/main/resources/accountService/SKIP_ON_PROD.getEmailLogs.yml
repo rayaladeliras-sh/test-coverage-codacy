@@ -1,0 +1,140 @@
+sequence: new
+sequenceName: getEmailLogs
+include : db/getEmail
+---
+id: acceptUserAgreement
+type: java
+class: com.stubhub.global.domain.utils.user.GlobalUserUtil
+method: acceptAllUserAgreement
+parameters: '{EXPR:String.valueOf({getEmail:sql.rows[0].userId})}'
+---
+id: getAssertion
+include: apigateway/get:assertion
+username: '{getEmail:sql.rows[0].name_login}'
+password: 'password'
+---
+comment: getEmailLogs
+id: getEmailLogs
+request:
+  method: get
+  subDomain: api-int
+  scheme: https
+  uri: '/accountmanagement/emails/v1/?'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - assertion: '{getAssertion:java.value}'
+    - X-SH-Service-Context: '{role=R1,proxiedId={getEmail:sql.rows[0].userId}}'
+response:
+  code: 200
+---
+id: fix
+type: fixture
+parameters:
+  auth: 'Bearer JYf0azPrf1RAvhUhpGZudVU9bBEa'
+---
+comment: invalid access
+id: invalidAccess
+request:
+  method: get
+  subDomain: api-int
+  scheme: https
+  uri: '/accountmanagement/emails/v1/?'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - Authorization: '{fix:parameters.auth}'
+response:
+  code: 403
+---
+comment: proxiedId is null
+id: proxiedIdInvalid
+request:
+  method: get
+  subDomain: api-int
+  scheme: https
+  uri: '/accountmanagement/emails/v1/?'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - assertion: '{getAssertion:java.value}'
+    - X-SH-Service-Context: '{role=R1,proxiedId=}'
+response:
+  code: 400
+---
+comment: orderId is invalid long
+id: orderIdInvalid
+request:
+  method: get
+  subDomain: api-int
+  scheme: https
+  uri: '/accountmanagement/emails/v1/?orderId=ABC'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - assertion: '{getAssertion:java.value}'
+    - X-SH-Service-Context: '{role=R1,proxiedId={getEmail:sql.rows[0].userId}}'
+response:
+  code: 400
+---
+comment: buyerOrderId is invalid long
+id: buyerOrderIdInvalid
+request:
+  method: get
+  subDomain: api-int
+  scheme: https
+  uri: '/accountmanagement/emails/v1/?buyerOrderId=ABC'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - assertion: '{getAssertion:java.value}'
+    - X-SH-Service-Context: '{role=R1,proxiedId={getEmail:sql.rows[0].userId}}'
+response:
+  code: 400
+---
+comment: rows is invalid long
+id: rowsInvalid
+request:
+  method: get
+  subDomain: api-int
+  scheme: https
+  uri: '/accountmanagement/emails/v1/?rows=ABC'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - assertion: '{getAssertion:java.value}'
+    - X-SH-Service-Context: '{role=R1,proxiedId={getEmail:sql.rows[0].userId}}'
+response:
+  code: 400
+---
+comment: start is invalid long
+id: startInvalid
+request:
+  method: get
+  subDomain: api-int
+  scheme: https
+  uri: '/accountmanagement/emails/v1/?start=ABC'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - assertion: '{getAssertion:java.value}'
+    - X-SH-Service-Context: '{role=R1,proxiedId={getEmail:sql.rows[0].userId}}'
+response:
+  code: 400
+---
+comment: fromEndDate is invalid long
+id: fromEndDateInvalid
+request:
+  method: get
+  subDomain: api-int
+  scheme: https
+  uri: '/accountmanagement/emails/v1/?fromDate=2018-12-31'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - assertion: '{getAssertion:java.value}'
+    - X-SH-Service-Context: '{role=R1,proxiedId={getEmail:sql.rows[0].userId}}'
+response:
+  code: 400
+
+

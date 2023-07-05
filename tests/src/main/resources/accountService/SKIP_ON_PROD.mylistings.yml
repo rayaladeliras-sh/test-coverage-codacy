@@ -1,0 +1,252 @@
+sequence: new
+sequenceName: getMyListings
+comment: Solr List Url
+id: solrQueryForSellerId
+request:
+  method: GET
+  uri: http://{ENV}ust001.{ENV}.com:8080/solr/sellerInventory/select?q=(quantityRemain:[1 TO *] AND (eventStatus:active OR eventStatus:contingent OR eventStatus:postponed) AND (ticketSystemStatus:ACTIVE OR ticketSystemStatus:INACTIVE OR ticketSystemStatus:"PENDING LOCK" OR ticketSystemStatus:"PENDING PDF REVIEW" OR (ticketSystemStatus:INCOMPLETE AND listingSourceId:10) OR (ticketSystemStatus:INCOMPLETE AND lmsApprovalStatusId:1)) AND eventDate:[NOW TO *] AND saleEndDate:[NOW TO *])&facet=true&facet.field=sellerId&rows=0
+---
+id: fix
+type: fixture
+parameters:
+  auth: 'Bearer JYf0azPrf1RAvhUhpGZudVU9bBEa'
+---
+comment: parse xml field to extract seller id
+id: extractSellerId
+type: groovy
+parameters: '{solrQueryForSellerId:response.bodyAsString}'
+script: |
+  response = new XmlParser().parseText(parameters)
+  sellerId = response.'lst'[1].'lst'[1].'lst'.'int'[0].@name
+  return sellerId
+---
+type: sequenceCache
+key: 'userId'
+value: '{extractSellerId:groovy}'
+---
+include: login
+---
+comment: invalid access
+verbose: true
+id: invalidAccess
+request:
+  method: GET
+  subDomain: api-dev
+  uri: '/accountmanagement/listings/v1/seller/{sqlGetUserGuid:sql.rows[0].user_cookie_guid}?shstore=1&start=0&rows=20&filters=STATUS%3AACTIVE&pricingRec=true&sort=SALEENDDATE+asc'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - Authorization: '{fix:parameters.auth}'
+response:
+  code: 403
+---
+comment: Get Listing List
+verbose: true
+id: getListingList
+request:
+  method: GET
+  subDomain: api-dev
+  uri: '/accountmanagement/listings/v1/seller/{sqlGetUserGuid:sql.rows[0].user_cookie_guid}?shstore=1&start=0&rows=20&filters=STATUS%3AACTIVE&pricingRec=true&sort=EVENTDATE+desc,EVENT+DESC,PRICE+DESC,STATUS+DESC,DELIVERYOPTION+DESC,QUANTITY+DESC,SALECATEGORY+DESC,PAYOUT+DESC,INHANDDATE+DESC,SECTION+DESC,ROW+DESC,SOLD_DATE+ASC&includeVenueSummary=true&includeGenreSummary=true&includeEventSummary=true'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 200
+---
+comment: Get Listing List
+verbose: true
+id: getListingListIncludeSold
+request:
+  method: GET
+  subDomain: api-dev
+  uri: '/accountmanagement/listings/v1/seller/{sqlGetUserGuid:sql.rows[0].user_cookie_guid}?shstore=1&start=0&rows=20&includeSold=true'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 200
+---
+comment: Get Listing List
+verbose: true
+id: getListingListIncludeDeleted
+request:
+  method: GET
+  subDomain: api-dev
+  uri: '/accountmanagement/listings/v1/seller/{sqlGetUserGuid:sql.rows[0].user_cookie_guid}?shstore=1&start=0&rows=20&includeDeleted=true'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 200
+---
+comment: BARCODE
+verbose: true
+id: deliveryOption1
+request:
+  method: GET
+  subDomain: api-dev
+  uri: /accountmanagement/listings/v1/seller/{sqlGetUserGuid:sql.rows[0].user_cookie_guid}?filters=DELIVERYOPTION:BARCODE,STATUS:PENDING
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 200
+---
+comment: PDF
+verbose: true
+id: deliveryOption2
+request:
+  method: GET
+  subDomain: api-dev
+  uri: /accountmanagement/listings/v1/seller/{sqlGetUserGuid:sql.rows[0].user_cookie_guid}?filters=DELIVERYOPTION:PDF,STATUS:EXPIRED
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 200
+---
+comment: FEDEX
+verbose: true
+id: deliveryOption3
+request:
+  method: GET
+  subDomain: api-dev
+  uri: /accountmanagement/listings/v1/seller/{sqlGetUserGuid:sql.rows[0].user_cookie_guid}?filters=DELIVERYOPTION:FEDEX
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 200
+---
+comment: ROYALMAIL
+verbose: true
+id: deliveryOption4
+request:
+  method: GET
+  subDomain: api-dev
+  uri: /accountmanagement/listings/v1/seller/{sqlGetUserGuid:sql.rows[0].user_cookie_guid}?filters=DELIVERYOPTION:ROYALMAIL
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 200
+---
+comment: DEUTSCHEPOST
+verbose: true
+id: deliveryOption5
+request:
+  method: GET
+  subDomain: api-dev
+  uri: /accountmanagement/listings/v1/seller/{sqlGetUserGuid:sql.rows[0].user_cookie_guid}?filters=DELIVERYOPTION:DEUTSCHEPOST
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 200
+---
+comment: LMS
+verbose: true
+id: deliveryOption6
+request:
+  method: GET
+  subDomain: api-dev
+  uri: /accountmanagement/listings/v1/seller/{sqlGetUserGuid:sql.rows[0].user_cookie_guid}?filters=DELIVERYOPTION:LMS
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 200
+---
+comment: FLASHSEAT
+verbose: true
+id: deliveryOption7
+request:
+  method: GET
+  subDomain: api-dev
+  uri: /accountmanagement/listings/v1/seller/{sqlGetUserGuid:sql.rows[0].user_cookie_guid}?filters=DELIVERYOPTION:FLASHSEAT
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 200
+---
+comment: COURIER
+verbose: true
+id: deliveryOption9
+request:
+  method: GET
+  subDomain: api-dev
+  uri: /accountmanagement/listings/v1/seller/{sqlGetUserGuid:sql.rows[0].user_cookie_guid}?filters=DELIVERYOPTION:COURIER
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 200
+---
+comment: LOCALDELIVERY
+verbose: true
+id: deliveryOption10
+request:
+  method: GET
+  subDomain: api-dev
+  uri: /accountmanagement/listings/v1/seller/{sqlGetUserGuid:sql.rows[0].user_cookie_guid}?filters=DELIVERYOPTION:LOCALDELIVERY
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 200
+---
+comment: TO range
+verbose: true
+id: rangeTest1
+request:
+  method: GET
+  subDomain: api-dev
+  uri: /accountmanagement/listings/v1/seller/{sqlGetUserGuid:sql.rows[0].user_cookie_guid}?filters=INHANDDATE:2018-1-1TO2018-12-31,SALEENDDATE:2018-1-1TO2018-12-31,EVENTDATE:2018-1-1TO2018-12-31,PRICE:1TO2,SALEID:1TO2
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 200
+---
+comment: single range
+verbose: true
+id: rangeTest2
+request:
+  method: GET
+  subDomain: api-dev
+  uri: /accountmanagement/listings/v1/seller/{sqlGetUserGuid:sql.rows[0].user_cookie_guid}?filters=INHANDDATE:2018-1-1,SALEENDDATE:2018-1-1,EVENTDATE:2018-1-1,PRICE:100,TICKETID:1,EVENT:1,EXTERNALLISTINGID:1,GENREID:(1 2),VENUEID:(1 2)
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 200
+

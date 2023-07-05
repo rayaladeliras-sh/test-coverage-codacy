@@ -1,0 +1,82 @@
+sequence: new
+sequenceName: getTransactionSummary
+comment: Solr List Url
+id: solrQuery
+type: sql
+sql: select tid,seller_id,default_email,event_date from sales_transactions s inner join users u on u.id=s.seller_id and u.active=1 and u.password='862B32796D33C526'   where event_date between add_months(sysdate,-6) and add_months(sysdate,6) and  rownum=1
+---
+type: sql
+comment: SQL Get User GUID
+verbose: true
+id: sqlGetUserGuid
+minCount: 1
+sql: select default_email, user_cookie_guid from users where id={solrQuery:sql.rows[0].seller_id}
+---
+id: fix
+type: fixture
+parameters:
+  auth: 'Bearer JYf0azPrf1RAvhUhpGZudVU9bBEa'
+---
+maxRetries: 3
+include: stubhub.iam:web.login
+credentials:
+  username: '{sqlGetUserGuid:sql.rows[0].default_email}'
+  password: 'password'
+---
+maxRetries: 3
+include: stubhub.iam:token.init
+sessionId: '{web.login:response.body.login.session_id}'
+---
+comment: invalid access
+verbose: true
+id: invalidAccess
+request:
+  method: POST
+  subDomain: api-dev
+  uri: '/accountmanagement/summary/v1/'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - Authorization: '{fix:parameters.auth}'
+  body:
+      summaryRequest:
+        proxiedId: '{solrQuery:sql.rows[0].seller_id}'
+response:
+  code: 403
+---
+comment: success
+verbose: true
+id: success
+request:
+  method: POST
+  subDomain: api-dev
+  uri: '/accountmanagement/summary/v1/'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+  body:
+      summaryRequest:
+            proxiedId: '{solrQuery:sql.rows[0].seller_id}'
+response:
+  code: 200
+---
+comment: success
+verbose: true
+id: successWithFlag
+request:
+  method: POST
+  subDomain: api-dev
+  uri: '/accountmanagement/summary/v1/'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+  body:
+      summaryRequest:
+            proxiedId: '{solrQuery:sql.rows[0].seller_id}'
+            fullSummaryDetails: True
+response:
+  code: 200

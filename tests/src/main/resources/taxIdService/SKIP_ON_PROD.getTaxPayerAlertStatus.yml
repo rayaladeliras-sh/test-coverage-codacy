@@ -1,0 +1,103 @@
+enabled: false
+sequence: new
+sequenceName: getTaxPayerAlertStatus
+type : sql
+id : tinNotNeedUser
+type: sql
+sql: select t.taxpayer_id,user_id,name_login,user_cookie_guid from TAXPAYER t inner join users u on u.id=t.user_id WHERE TAXPAYER_COLLECT_STATUS_ID=7 and u.password='862B32796D33C526'  and t.active=1 and u.ACTIVE = 1 and rownum=1
+---
+enabled: false
+id: fix
+type: fixture
+parameters:
+  auth: 'Bearer JYf0azPrf1RAvhUhpGZudVU9bBEa'
+---
+enabled: false
+comment: invalid access
+id: invalidAccess
+request:
+  method: get
+  subDomain: api-dev
+  scheme: https
+  uri: '/accountmanagement/taxid/v1/seller/{tinNotNeedUser:sql.rows[0].user_cookie_guid}'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - Authorization: '{fix:parameters.auth}'
+response:
+  code: 403
+---
+enabled: false
+maxRetries: 3
+include: stubhub.iam:web.login
+credentials:
+  username: '{tinNotNeedUser:sql.rows[0].name_login}'
+  password: 'password'
+---
+enabled: false
+maxRetries: 3
+include: stubhub.iam:token.init
+sessionId: '{web.login:response.body.login.session_id}'
+---
+enabled: false
+comment: tinNotNeedUser
+id: tinNotNeedUserCase
+request:
+  method: get
+  subDomain: api-dev
+  scheme: https
+  uri: '/accountmanagement/taxid/v1/seller/{tinNotNeedUser:sql.rows[0].user_cookie_guid}'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 200
+---
+enabled: false
+comment: update status to TIN needed
+type: sql
+sql: update TAXPAYER set TAXPAYER_COLLECT_STATUS_ID=4  where taxpayer_id={tinNotNeedUser:sql.rows[0].taxpayer_id}
+---
+enabled: false
+comment: alert true
+id: alertTrue
+request:
+  method: get
+  subDomain: api-dev
+  scheme: https
+  uri: '/accountmanagement/taxid/v1/seller/{tinNotNeedUser:sql.rows[0].user_cookie_guid}'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 200
+---
+enabled: false
+comment: update status to TIN valid
+type: sql
+sql: update TAXPAYER set TAXPAYER_COLLECT_STATUS_ID=9  where taxpayer_id={tinNotNeedUser:sql.rows[0].taxpayer_id}
+---
+enabled: false
+comment: alert false
+id: alertFalse
+request:
+  method: get
+  subDomain: api-dev
+  scheme: https
+  uri: '/accountmanagement/taxid/v1/seller/{tinNotNeedUser:sql.rows[0].user_cookie_guid}'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 200
+---
+enabled: false
+comment: recover status
+type: sql
+sql: update TAXPAYER set TAXPAYER_COLLECT_STATUS_ID=7  where taxpayer_id={tinNotNeedUser:sql.rows[0].taxpayer_id}

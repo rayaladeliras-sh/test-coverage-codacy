@@ -1,0 +1,16 @@
+{
+  "response": {
+    "numFound": 0,
+    "aggregations": {
+      "statsCostPerTicket": {
+        "percentiles": {
+          "50.0": null
+        },
+        "mean": "NaN"
+      },
+      "statsPricePerTicket": {
+        "mean": "NaN"
+      }
+    }
+  }
+}

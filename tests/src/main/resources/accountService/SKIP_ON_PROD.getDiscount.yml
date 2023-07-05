@@ -1,0 +1,75 @@
+sequence: new
+sequenceName: getDiscount
+comment: Solr List Url
+id: solrQuery
+request:
+  method: GET
+  uri: http://{ENV}uss001.{ENV}.com:8080/solr/sale/select?q=*:*&rows=1&sort=dateLastIndexed desc
+---
+comment: parse xml field to extract seller id
+id: extractSellerId
+type: groovy
+parameters: '{solrQuery:response.bodyAsString}'
+script: |
+  response = new XmlParser().parseText(parameters)
+    def sellerId
+    response.result[0].doc[0].each{ node-> if(node.@name == 'sellerId'){sellerId=node.text()}
+
+    }
+  return sellerId
+---
+type: sequenceCache
+key: 'userId'
+value: '{extractSellerId:groovy}'
+---
+include: login
+---
+comment: invalid sale id
+verbose: true
+id: badRequest3
+request:
+  method: GET
+  subDomain: api-dev
+  uri: '/accountmanagement/orders/v1/ABC/discounts'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 400
+---
+comment: orderNotFound
+verbose: true
+id: orderNotFound
+request:
+  method: GET
+  subDomain: api-dev
+  uri: '/accountmanagement/orders/v1/123456789/discounts'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 204
+---
+type : sql
+id : getOrderId
+minCount : 1
+sql : select ud.tid from used_discounts ud, discounts d, discount_types dt where ud.discount_id = d.id AND d.discount_type_id = dt.id and rownum=1
+---
+comment: success
+verbose: true
+id: success
+request:
+  method: GET
+  subDomain: api-dev
+  uri: '/accountmanagement/orders/v1/{getOrderId:sql.rows[0].tid}/discounts'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 200

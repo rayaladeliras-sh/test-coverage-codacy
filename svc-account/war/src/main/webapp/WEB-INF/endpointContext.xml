@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:cache="http://www.springframework.org/schema/cache"
+       xsi:schemaLocation="
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/cache http://www.springframework.org/schema/cache/spring-cache.xsd">
+
+	<bean id="propertyPlaceholderConfigurer"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="properties"> 
+			<bean class="com.stubhub.newplatform.property.MasterStubHubProperties"
+				factory-method="loadSystemProperties" /> 	
+	    </property>
+	</bean>
+
+    <import resource="classpath:business/accountdataSourceContext.xml"/>
+    <import resource="classpath:/config/infra/sh-config.xml" />
+
+    <context:component-scan base-package="com.stubhub.domain.account.helper"/>
+
+    <context:component-scan base-package="com.stubhub.newplatform.common.sanitycheck.jmx"/>	
+	
+	<bean id="accountDataSourceCheck" class="com.stubhub.newplatform.common.sanitycheck.jmx.DataSourceSanityCheck">
+		<property name="name" value="accountdataSourceContext"/>
+		<property name="dataSource"><ref bean="accountDataSource"/></property> 
+	</bean>	
+
+    <bean id="sanityCheckMBeanExporter" class="org.springframework.jmx.export.MBeanExporter" lazy-init="false">
+        <property name="beans">
+            <map>
+                <entry key="AccountDomain-service:name=CentralizedMbean" value-ref="centralizedMbean" />
+                <entry key="AccountDomain-service:name=SvcAccountMBean" value-ref="svcAccountMBean" />
+            </map>
+        </property>
+        <property name="registrationBehaviorName" value="REGISTRATION_IGNORE_EXISTING" />
+    </bean>
+
+	<bean id="jmxMgrRegister" class="com.stubhub.newplatform.common.sanitycheck.jmx.JmxMgrRegister">
+		<property name="jmxMgrUrl" value="${jmxSiteMgr.url}"/>
+		<property name="jmxMgrData" value="module=account-service&amp;jmxUrl=http://${HOSTNAME}/jmx-console/HtmlAdaptor&amp;release=rb1204&amp;dbVersion=rb1204&amp;errorMsg=Starting&amp;hostName=${HOSTNAME}&amp;hostRole=apx"/>
+	</bean>
+	
+	<bean id="svcLocator" class="com.stubhub.platform.utilities.webservice.svclocator.SvcLocator" />
+	
+	<context:component-scan base-package="com.stubhub.domain.infrastructure.web.client" />
+	<bean id="restTemplate" class="com.stubhub.domain.infrastructure.web.client.SHRestTemplate"/>
+	
+	<!-- i18n integration -->
+   	<import resource="shcache-context.xml"/>
+	<bean id="messageSource" class="com.stubhub.domain.i18n.services.localization.v1.utility.DataSourceMessageSource">
+       <property name="groupList"   value="account-Listing,account-Invoice,deliveryLabelLocalization,fulfillment-window"/>
+    </bean>
+   
+   <bean id="httpClient4UtilHelper" class="com.stubhub.newplatform.http.util.impl.HttpClient4UtilHelperImpl"></bean>
+   
+    <context:component-scan base-package="com.stubhub.domain.account"/>
+    <context:component-scan base-package="com.stubhub.domain.common"/>  
+    <context:component-scan base-package="com.stubhub.newplatform"/> 
+    <context:component-scan base-package="com.stubhub.domain.fulfillment.*" /> 
+    <context:component-scan base-package="com.stubhub.domain.i18n.infra.soa" />
+
+	<!-- setup a spring specific wrapper -->
+    <bean id="SHCacheManagerWrapper" class="com.stubhub.domain.infrastructure.caching.client.spring.cache.SpringCacheManager">
+        <constructor-arg ref="SHCacheManagerUser" />
+    </bean>
+ 
+    <!-- enable spring (cache related) annotation processing -->
+    <cache:annotation-driven cache-manager="SHCacheManagerWrapper"/>
+
+	
+</beans>

@@ -1,0 +1,112 @@
+sequence: new
+sequenceName: getInvoiceByReferenceNumber
+comment: get invoice
+id: getInvoice
+type: sql
+sql: select s.id,s.reference_number, s.seller_id as user_id from SELLER_PAYMENTS s inner join (select tid,reference_number from MYACT_INVOICE_VW_01 where reference_number is not null and tid >100000000 and rownum <1000) m on s.tid=m.tid and s.reference_number=m.reference_number inner join users u on u.id=s.seller_id  where u.ACTIVE = 1  and rownum =1
+---
+type: sql
+minCount: 0
+sql: update users  set password = secure_tools.encryptUserPwd('password'), hashed_password = null  where id={getInvoice:sql.rows[0].user_id}
+---
+type: sql
+comment: SQL Get User GUID
+verbose: true
+id: sqlGetUserGuid
+minCount: 1
+sql: select default_email, user_cookie_guid from users where id={getInvoice:sql.rows[0].user_id}
+---
+maxRetries: 3
+include: stubhub.iam:web.login
+credentials:
+  username: '{sqlGetUserGuid:sql.rows[0].default_email}'
+  password: 'password'
+---
+maxRetries: 3
+include: stubhub.iam:token.init
+sessionId: '{web.login:response.body.login.session_id}'
+---
+id: fix
+type: fixture
+parameters:
+  auth: 'Bearer JYf0azPrf1RAvhUhpGZudVU9bBEa'
+---
+comment: invalid access
+verbose: true
+id: invalidAccess
+request:
+  method: GET
+  subDomain: api-dev
+  uri: '/accountmanagement/invoice/v1/seller/{sqlGetUserGuid:sql.rows[0].user_cookie_guid}/ref/{getInvoice:sql.rows[0].reference_number}'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - Authorization: '{fix:parameters.auth}'
+response:
+  code: 401
+---
+comment: payment not found
+verbose: true
+id: paymentNotFound
+request:
+  method: GET
+  subDomain: api-dev
+  uri: '/accountmanagement/invoice/v1/seller/{sqlGetUserGuid:sql.rows[0].user_cookie_guid}/ref/{getInvoice:sql.rows[0].reference_number}?pid=1'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 404
+  bodyMatch: contains
+  body:
+    code: accountmanagement.api.invoice.paymentNotFound
+---
+comment: invoice not found
+verbose: true
+id: invoiceNotFound
+request:
+  method: GET
+  subDomain: api-dev
+  uri: '/accountmanagement/invoice/v1/seller/{sqlGetUserGuid:sql.rows[0].user_cookie_guid}/ref/1'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 404
+  bodyMatch: contains
+  body:
+    code: accountmanagement.api.invoice.paymentNotFound
+---
+comment: get by reference_number
+verbose: true
+id: success
+request:
+  method: GET
+  subDomain: api-dev
+  uri: '/accountmanagement/invoice/v1/seller/{sqlGetUserGuid:sql.rows[0].user_cookie_guid}/ref/{getInvoice:sql.rows[0].reference_number}'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 200
+---
+comment: get by pid and reference_number
+verbose: true
+id: success2
+request:
+  method: GET
+  subDomain: api-dev
+  uri: '/accountmanagement/invoice/v1/seller/{sqlGetUserGuid:sql.rows[0].user_cookie_guid}/ref/{getInvoice:sql.rows[0].reference_number}?pid={getInvoice:sql.rows[0].id}'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 200

@@ -1,0 +1,286 @@
+sequence: new
+sequenceName: getPayments
+comment: Solr List Url
+verbose: true
+id: solrQueryForSellerId
+request:
+  method: GET
+  uri: http://{ENV}usp001.{ENV}.com:8080/solr/payment/select?q=currencyCode:USD&facet=true&facet.field=sellerId&rows=0
+---
+comment: parse xml field to extract seller id
+id: extractSellerId
+type: groovy
+parameters: '{solrQueryForSellerId:response.bodyAsString}'
+script: |
+  response = new XmlParser().parseText(parameters)
+  sellerId = response.'lst'[1].'lst'[1].'lst'.'int'[0].@name
+  return sellerId
+---
+type: sequenceCache
+key: 'userId'
+value: '{extractSellerId:groovy}'
+---
+include: login
+---
+id: fix
+type: fixture
+parameters:
+  auth: 'Bearer JYf0azPrf1RAvhUhpGZudVU9bBEa'
+---
+comment: invalidAccess
+verbose: true
+id: invalidAccess
+request:
+  method: GET
+  subDomain: api-dev
+  uri: '/accountmanagement/payments/v1/seller/{sqlGetUserGuid:sql.rows[0].user_cookie_guid}?shstore=1&start=0&rows=20&includeCreditMemo=false&includePaymentSummary=true&filters=currency%3AUSD%2C+status%3ASent+Charged+Cancelled'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - Authorization: '{fix:parameters.auth}'
+response:
+  code: 403
+---
+comment: Get Payment List
+verbose: true
+id: getPaymentList
+request:
+  method: GET
+  subDomain: api-dev
+  uri: '/accountmanagement/payments/v1/seller/{sqlGetUserGuid:sql.rows[0].user_cookie_guid}?shstore=1&start=0&rows=20&includeCreditMemo=false&includePaymentSummary=true&includeCurrencySummary=true&filters=currency%3AUSD'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 200
+---
+comment: test sorting by orderID
+verbose: true
+id: sorting1
+request:
+  method: GET
+  subDomain: api-dev
+  uri: /accountmanagement/payments/v1/seller/{sqlGetUserGuid:sql.rows[0].user_cookie_guid}?shstore=1&start=0&rows=20&includeCreditMemo=false&includePaymentSummary=true&filters=currency:USD,+status:Sent+Charged+Cancelled,paymentDate:[2018-01-01+TO+2018-12-31],paymentInitiatedDate:[2018-01-01+TO+2018-12-31],paymentAmount:[1TO100000],paymentType:PayPal&sort=orderID+desc
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 200
+---
+comment: test sorting by paymentAmount
+verbose: true
+id: sorting2
+request:
+  method: GET
+  subDomain: api-dev
+  uri: /accountmanagement/payments/v1/seller/{sqlGetUserGuid:sql.rows[0].user_cookie_guid}?sort=paymentAmount+ASC
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 200
+---
+comment: test sorting by status
+verbose: true
+id: sorting3
+request:
+  method: GET
+  subDomain: api-dev
+  uri: /accountmanagement/payments/v1/seller/{sqlGetUserGuid:sql.rows[0].user_cookie_guid}?sort=status+ASC
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 200
+---
+comment: test sorting paymentType
+verbose: true
+id: sorting4
+request:
+  method: GET
+  subDomain: api-dev
+  uri: /accountmanagement/payments/v1/seller/{sqlGetUserGuid:sql.rows[0].user_cookie_guid}?sort=paymentType+ASC
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 200
+---
+comment: test sorting by paymentInitiatedDate
+verbose: true
+id: sorting5
+request:
+  method: GET
+  subDomain: api-dev
+  uri: /accountmanagement/payments/v1/seller/{sqlGetUserGuid:sql.rows[0].user_cookie_guid}?sort=paymentInitiatedDate+ASC
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 200
+---
+comment: test sorting by paymentDate
+verbose: true
+id: sorting6
+request:
+  method: GET
+  subDomain: api-dev
+  uri: /accountmanagement/payments/v1/seller/{sqlGetUserGuid:sql.rows[0].user_cookie_guid}?sort=paymentDate+ASC
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 200
+---
+comment: test sorting by paymentCreatedDate
+verbose: true
+id: sorting7
+request:
+  method: GET
+  subDomain: api-dev
+  uri: /accountmanagement/payments/v1/seller/{sqlGetUserGuid:sql.rows[0].user_cookie_guid}?sort=paymentCreatedDate+ASC
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 200
+---
+comment: test ACTM-1197
+verbose: true
+id: ACTM-1197
+request:
+  method: GET
+  subDomain: api-dev
+  uri: /accountmanagement/payments/v1/seller/{sqlGetUserGuid:sql.rows[0].user_cookie_guid}?filters=currency%3AUSD&rows=1
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 200
+---
+comment: parse json response to extract orderId
+id: extractOrderId
+type: groovy
+parameters: '{ACTM-1197:response.bodyAsString}'
+script: |
+  import groovy.json.JsonSlurper
+  response = new JsonSlurper().parseText(parameters)
+  orderId = response.payments[0].orderID
+  return orderId
+---
+comment: parse json response to extract pid
+id: extractPid
+type: groovy
+parameters: '{ACTM-1197:response.bodyAsString}'
+script: |
+  import groovy.json.JsonSlurper
+  response = new JsonSlurper().parseText(parameters)
+  pid = response.payments[0].ID
+  return pid
+---
+type: sql
+id: setCreditMemoAmt
+username: stub_app_01
+password: dstub_app_01
+sql: "update CM_PAYMENT_XREF set applied_pid = {extractPid:groovy}, applied_amount=0.01 where applied_pid = (select applied_pid from CM_PAYMENT_XREF where last_updated_date between sysdate-60 and sysdate-10 and rownum =1)"
+minCount: 1
+---
+type: sql
+id: setAdditonalPayAmt
+username: stub_app_01
+password: dstub_app_01
+sql: "update SELLER_PAYMENTS set payment_condition = 'Addtional Payment',amount=0.03 where id ={extractPid:groovy}"
+minCount: 1
+---
+type: sql
+id: setChargeToSellerAmt
+username: stub_app_01
+password: dstub_app_01
+sql: "update seller_cc_trans set  tid = {extractOrderId:groovy}, amount=0.02  where tid = (select tid from seller_cc_trans where  TRANS_TYPE ='D' and RESULT_CODE = 0 and last_updated_date > sysdate -90 and rownum =1)"
+minCount: 1
+---
+comment: getACTM-1197
+verbose: true
+id: getACTM-1197
+request:
+  method: GET
+  subDomain: api-dev
+  uri: /accountmanagement/payments/v1/seller/{sqlGetUserGuid:sql.rows[0].user_cookie_guid}?includeChargeAmtCMAmt=true&filters=orderID%3A{extractOrderId:groovy}&rows=1
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 200
+---
+#comment: parse json response to verify
+#id: verifyACTM-1197
+#type: groovy
+#parameters: '{ACTM-1197:response.bodyAsString}'
+#script: |
+#  import groovy.json.JsonSlurper
+#  response = new JsonSlurper().parseText(parameters)
+#  pid = response.payments[0].ID
+#  tid = response.payments[0].orderID
+#  dateLastModified = response.payments[0].dateLastModified
+#  paymentCondition = response.payments[0].paymentCondition
+#  additonalPayAmt = response.payments[0].additonalPayAmt.amount
+#  chargeToSellerAmt = response.payments[0].chargeToSellerAmt.amount
+#  creditMemoAmt = response.payments[0].creditMemoAmt.amount
+#  println pid
+#  println tid
+#  println dateLastModified
+#  println paymentCondition
+#  println additonalPayAmt
+#  println chargeToSellerAmt
+#  println creditMemoAmt
+#---
+comment: testDateLastModified
+verbose: true
+id: testDateLastModified
+request:
+  method: GET
+  subDomain: api-dev
+  uri: /accountmanagement/payments/v1/seller/{sqlGetUserGuid:sql.rows[0].user_cookie_guid}?filters=dateLastModified:[2017-12-16T06:43:55ZTO2017-12-17T06:43:55Z]&includeChargeAmtCMAmt=true
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 200
+---
+comment: testDateLastModified2
+verbose: true
+id: testDateLastModified2
+request:
+  method: GET
+  subDomain: api-dev
+  uri: /accountmanagement/payments/v1/seller/{sqlGetUserGuid:sql.rows[0].user_cookie_guid}?filters=dateLastModified:[2017-12-16T06:43:55ZTO2017-12-17T06:43:55Z],currency%3AUSD&rows=1
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 200
+---

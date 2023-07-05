@@ -1,0 +1,22 @@
+id: plusDaysAsCustomFormat
+comment: Get current time plus the given number of days with custom format
+type: groovy
+parameters:
+  date: 0
+  days: 0
+  pattern: "dd-MMM-yy"
+  returnPattern: "yyyy-MM-dd"
+script: |
+  def dt
+  def cal=Calendar.getInstance(TimeZone.getTimeZone("UTC"))
+  String dateStr;
+  java.text.SimpleDateFormat fmt= new java.text.SimpleDateFormat(parameters.pattern);
+  java.text.SimpleDateFormat returnFmt= new java.text.SimpleDateFormat(parameters.returnPattern);
+  if(0!=parameters.date){
+      dateStr=String.valueOf(parameters.date)
+      dt=fmt.parse(dateStr)
+      cal.setTime(dt)
+  }
+  cal.add(Calendar.DATE,parameters.days)
+  dt=cal.getTime()
+  return(returnFmt.format(dt))

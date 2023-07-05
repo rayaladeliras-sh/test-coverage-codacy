@@ -1,0 +1,43 @@
+sequence: new
+sequenceName: getMyListingsDATELASTMODIFIED
+comment: Solr List Url
+id: solrQueryForSellerId
+request:
+  method: GET
+  uri: http://{ENV}ust001.{ENV}.com:8080/solr/sellerInventory/select?q=(quantityRemain:[1 TO *] AND (eventStatus:active OR eventStatus:contingent OR eventStatus:postponed) AND (ticketSystemStatus:ACTIVE OR ticketSystemStatus:INACTIVE OR ticketSystemStatus:"PENDING LOCK" OR ticketSystemStatus:"PENDING PDF REVIEW" OR (ticketSystemStatus:INCOMPLETE AND listingSourceId:10) OR (ticketSystemStatus:INCOMPLETE AND lmsApprovalStatusId:1)) AND eventDate:[NOW TO *] AND saleEndDate:[NOW TO *])&facet=true&facet.field=sellerId&rows=0
+---
+id: fix
+type: fixture
+parameters:
+  auth: 'Bearer JYf0azPrf1RAvhUhpGZudVU9bBEa'
+---
+comment: parse xml field to extract seller id
+id: extractSellerId
+type: groovy
+parameters: '{solrQueryForSellerId:response.bodyAsString}'
+script: |
+  response = new XmlParser().parseText(parameters)
+  sellerId = response.'lst'[1].'lst'[1].'lst'.'int'[0].@name
+  return sellerId
+---
+type: sequenceCache
+key: 'userId'
+value: '{extractSellerId:groovy}'
+---
+include: login
+---
+comment: TO range
+verbose: true
+id: rangeTest1
+request:
+  method: GET
+  subDomain: api-dev
+  uri: /accountmanagement/listings/v1/seller/{sqlGetUserGuid:sql.rows[0].user_cookie_guid}?filters=DATELASTMODIFIED:[2018-08-05T09:32:58 TO2018-08-030T04:10:58]
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 200
+

@@ -1,0 +1,209 @@
+sequence: new
+sequenceName: updateBuyerContactId
+comment: Solr List Url
+id: getOrderId
+type: sql
+sql: select s.id,buyer_id,contact_id,order_proc_sub_status_code,f.delivery_method_id from stub_trans s inner join users u on u.id=s.buyer_id  inner join stub_trans_fm_dm f on f.tid=s.id and f.active=1 inner join delivery_method d on d.delivery_method_id=f.delivery_method_id where ORDER_PROC_SUB_STATUS_CODE in (1,4,5,6,7,42,43,45,46) and delivery_type_id=5 and u.password='862B32796D33C526' and u.active=1 and rownum=1
+---
+type: sql
+comment: SQL Get User GUID
+verbose: true
+id: sqlGetUserGuid
+minCount: 1
+sql: select default_email, user_cookie_guid from users where id={getOrderId:sql.rows[0].buyer_id}
+---
+maxRetries: 3
+include: stubhub.iam:web.login
+credentials:
+  username: '{sqlGetUserGuid:sql.rows[0].default_email}'
+  password: 'password'
+---
+maxRetries: 3
+include: stubhub.iam:token.init
+sessionId: '{web.login:response.body.login.session_id}'
+---
+comment: not auth
+verbose: true
+id: noAuth
+request:
+  method: POST
+  subDomain: api-dev
+  uri: '/accountmanagement/orders/v1/{getOrderId:sql.rows[0].id}/buyerContactId'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+  body:
+    buyerContactId:
+      contactId: 1
+      csrRepresentative: 'test'
+response:
+  code: 401
+---
+comment: invalid order id
+verbose: true
+id: invalidOrderId
+request:
+  method: POST
+  subDomain: api-dev
+  uri: '/accountmanagement/orders/v1/ABC/buyerContactId'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+  body:
+    buyerContactId:
+      contactId: 1
+      csrRepresentative: 'test'
+response:
+  code: 400
+---
+comment: csrRepresentative empty
+verbose: true
+id: csrRepresentativeEmpty
+request:
+  method: POST
+  subDomain: api-dev
+  uri: '/accountmanagement/orders/v1/{getOrderId:sql.rows[0].id}/buyerContactId'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+  body:
+    buyerContactId:
+      contactId: 1
+response:
+  code: 400
+---
+comment: invalid contact id
+verbose: true
+id: invalid
+request:
+  method: POST
+  subDomain: api-dev
+  uri: '/accountmanagement/orders/v1/{getOrderId:sql.rows[0].id}/buyerContactId'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+  body:
+    buyerContactId:
+      contactId: ABC
+      csrRepresentative: 'test'
+response:
+  code: 400
+---
+comment: csrRepresentative exceed max length
+verbose: true
+id: invalidCsrRepresentative
+request:
+  method: POST
+  subDomain: api-dev
+  uri: '/accountmanagement/orders/v1/{getOrderId:sql.rows[0].id}/buyerContactId'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+  body:
+    buyerContactId:
+      contactId: ABC
+      csrRepresentative: 'testtesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttest'
+response:
+  code: 400
+---
+comment: order not found
+verbose: true
+id: notFound
+request:
+  method: POST
+  subDomain: api-dev
+  uri: '/accountmanagement/orders/v1/1/buyerContactId'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+  body:
+    buyerContactId:
+      contactId: 1
+      csrRepresentative: 'test'
+response:
+  code: 404
+---
+comment: update to invalid status
+type: sql
+sql: update stub_trans set order_proc_sub_status_code=2 where id={getOrderId:sql.rows[0].id}
+---
+comment: invalid status
+id: invalidStatus
+request:
+  method: POST
+  subDomain: api-dev
+  uri: '/accountmanagement/orders/v1/{getOrderId:sql.rows[0].id}/buyerContactId'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+  body:
+    buyerContactId:
+      contactId: 1
+      csrRepresentative: 'test'
+response:
+  code: 409
+---
+comment: recover status
+type: sql
+sql: update stub_trans set order_proc_sub_status_code={getOrderId:sql.rows[0].order_proc_sub_status_code} where id={getOrderId:sql.rows[0].id}
+---
+comment: update to none UPS delivery method
+type: sql
+sql: update stub_trans_fm_dm set delivery_method_id=6 where tid={getOrderId:sql.rows[0].id} and active=1
+---
+comment: not ups order
+id: notUps
+request:
+  method: POST
+  subDomain: api-dev
+  uri: '/accountmanagement/orders/v1/{getOrderId:sql.rows[0].id}/buyerContactId'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+  body:
+    buyerContactId:
+      contactId: 1
+      csrRepresentative: 'test'
+response:
+  code: 409
+---
+comment: recover delivery method
+type: sql
+sql: update stub_trans_fm_dm set delivery_method_id={getOrderId:sql.rows[0].delivery_method_id} where tid={getOrderId:sql.rows[0].id} and active=1
+---
+comment: success
+verbose: true
+id: success
+request:
+  method: POST
+  subDomain: api-dev
+  uri: '/accountmanagement/orders/v1/{getOrderId:sql.rows[0].id}/buyerContactId'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+  body:
+    buyerContactId:
+      contactId: 1
+      csrRepresentative: 'test'
+response:
+  code: 200
+---
+comment: recover buyerContactId
+type: sql
+sql: update stub_trans set contact_id={getOrderId:sql.rows[0].contact_id} where id={getOrderId:sql.rows[0].id}

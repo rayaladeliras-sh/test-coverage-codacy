@@ -1,0 +1,102 @@
+enabled: true
+sequence: new
+sequenceName: getCreditMemos
+comment: get CreditMemos
+id: getCreditMemos
+type: sql
+sql: select sp.SELLER_ID as user_id ,date_added from SELLER_PAYMENTS SP inner join users u on u.id=sp.seller_id and u.active=1 and u.password='862B32796D33C526' left join SELLER_PAYMENT_STATUS_HIST SPH on sph.pid = sp.id where record_type = 'Credit Memo'  and rownum=1
+---
+enabled: true
+type: sql
+comment: SQL Get User GUID
+verbose: true
+id: sqlGetUserGuid
+minCount: 1
+sql: select default_email, user_cookie_guid from users where id={getCreditMemos:sql.rows[0].user_id}
+---
+enabled: true
+maxRetries: 3
+include: stubhub.iam:web.login
+credentials:
+  username: '{sqlGetUserGuid:sql.rows[0].default_email}'
+  password: 'password'
+---
+enabled: true
+maxRetries: 3
+include: stubhub.iam:token.init
+sessionId: '{web.login:response.body.login.session_id}'
+---
+enabled: true
+id: fix
+type: fixture
+parameters:
+  auth: 'Bearer JYf0azPrf1RAvhUhpGZudVU9bBEa'
+---
+enabled: true
+comment: invalid access
+verbose: true
+id: invalidAccess
+request:
+  method: GET
+  subDomain: api-dev
+  uri: '/accountmanagement/creditmemos/v1/seller/{sqlGetUserGuid:sql.rows[0].user_cookie_guid}'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - Authorization: '{fix:parameters.auth}'
+response:
+  code: 403
+---
+enabled: true
+comment: success without query
+verbose: true
+id: success
+request:
+  method: GET
+  subDomain: api-dev
+  uri: '/accountmanagement/creditmemos/v1/seller/{sqlGetUserGuid:sql.rows[0].user_cookie_guid}'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 200
+---
+enabled: true
+id: fromDate
+comment:  start date
+type: groovy
+include: utils/dateTime:plusDaysAsCustomFormat
+parameters:
+  date: '{getCreditMemos:sql.rows[0].date_added}'
+  days: -1
+  pattern: "yyyy-MM-dd"
+  returnPattern: "yyyy-MM-dd"
+---
+enabled: true
+id: toDate
+comment:  end date
+type: groovy
+include: utils/dateTime:plusDaysAsCustomFormat
+parameters:
+  date: '{getCreditMemos:sql.rows[0].date_added}'
+  days: 1
+  pattern: "yyyy-MM-dd"
+  returnPattern: "yyyy-MM-dd"
+---
+enabled: true
+comment: success with date
+verbose: true
+id: success2
+request:
+  method: GET
+  subDomain: api-dev
+  uri: '/accountmanagement/creditmemos/v1/seller/{sqlGetUserGuid:sql.rows[0].user_cookie_guid}?createdFromDate={fromDate:groovy}&createdToDate={toDate:groovy}'
+  headers:
+    - Accept: application/json
+    - Content-Type: application/json
+    - X-csrf-Token: '{web.login:response.body.login.csrf_token}'
+    - Cookie: '{token.init:response.cookie.SH_UT.raw}'
+response:
+  code: 200

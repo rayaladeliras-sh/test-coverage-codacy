@@ -1,0 +1,391 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:jaxrs="http://cxf.apache.org/jaxrs"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:cxf="http://cxf.apache.org/core"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xmlns:sec="http://www.springframework.org/schema/security"
+       xmlns:http-conf="http://cxf.apache.org/transports/http/configuration"
+       xmlns:httpj="http://cxf.apache.org/transports/http-jetty/configuration"
+       xsi:schemaLocation="
+       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+       http://cxf.apache.org/jaxrs http://cxf.apache.org/schemas/jaxrs.xsd
+       http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
+       http://cxf.apache.org/core http://cxf.apache.org/schemas/core.xsd
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+       http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd
+       http://cxf.apache.org/transports/http/configuration http://cxf.apache.org/schemas/configuration/http-conf.xsd">
+
+    <bean name="exceptionProvider" class="com.stubhub.domain.infrastructure.soa.server.exception.SHExceptionMapper"/>
+
+    <bean id="i18nServiceContextPropagationOutInterceptor"
+    class="com.stubhub.domain.i18n.infra.soa.client.context.I18nServiceContextOutInterceptor" />
+    
+    <cxf:bus>
+        <cxf:outInterceptors>
+            <ref bean="i18nServiceContextPropagationOutInterceptor" />
+            <ref bean="contextPropagationOutInterceptor"/>
+            <!-- 	    <ref bean="shContextPropagationOutInterceptor" />	     -->
+        </cxf:outInterceptors>
+    </cxf:bus>
+
+    <jaxrs:server id="taxIdContainer" address="/accountmanagement/taxid/v1" staticSubresourceResolution="true">
+        <jaxrs:serviceBeans>
+            <ref bean="taxIdService"/>
+        </jaxrs:serviceBeans>
+        <jaxrs:extensionMappings>
+            <entry key="xml" value="application/xml"/>
+            <entry key="json" value="application/json"/>
+        </jaxrs:extensionMappings>
+        <jaxrs:providers>
+            <bean class="com.stubhub.platform.utilities.webservice.security.ExtendedSecurityContextProvider"/>
+            <bean class="com.stubhub.domain.infrastructure.soa.server.context.SHServiceContextProvider"/>
+            <ref bean="newJsonProvider"/>
+            <ref bean="accountResponseHandler"/>
+            <bean class="org.apache.cxf.jaxrs.ext.search.SearchContextProvider"/>
+            <ref bean="exceptionProvider"/>
+        </jaxrs:providers>
+        <jaxrs:inInterceptors>
+            <bean class="org.apache.cxf.jaxrs.provider.jsonp.JsonpInInterceptor"/>
+        </jaxrs:inInterceptors>
+        <jaxrs:outInterceptors>
+            <bean class="org.apache.cxf.jaxrs.provider.jsonp.JsonpPreStreamInterceptor"/>
+            <bean class="org.apache.cxf.jaxrs.provider.jsonp.JsonpPostStreamInterceptor"/>
+            <ref bean="contextPropagationOutInterceptor"/>
+        </jaxrs:outInterceptors>
+    </jaxrs:server>
+
+    <jaxrs:server id="brokerLicenseContainer" address="/accountmanagement/brokerlicense/v1" staticSubresourceResolution="true">
+        <jaxrs:serviceBeans>
+            <ref bean="brokerLicenseService"/>
+        </jaxrs:serviceBeans>
+        <jaxrs:extensionMappings>
+            <entry key="xml" value="application/xml"/>
+            <entry key="json" value="application/json"/>
+        </jaxrs:extensionMappings>
+        <jaxrs:providers>
+            <bean class="com.stubhub.platform.utilities.webservice.security.ExtendedSecurityContextProvider"/>
+            <bean class="com.stubhub.domain.infrastructure.soa.server.context.SHServiceContextProvider"/>
+            <ref bean="newJsonProvider"/>
+            <ref bean="accountResponseHandler"/>
+            <bean class="org.apache.cxf.jaxrs.ext.search.SearchContextProvider"/>
+            <ref bean="exceptionProvider"/>
+        </jaxrs:providers>
+        <jaxrs:inInterceptors>
+            <bean class="org.apache.cxf.jaxrs.provider.jsonp.JsonpInInterceptor"/>
+        </jaxrs:inInterceptors>
+        <jaxrs:outInterceptors>
+            <bean class="org.apache.cxf.jaxrs.provider.jsonp.JsonpPreStreamInterceptor"/>
+            <bean class="org.apache.cxf.jaxrs.provider.jsonp.JsonpPostStreamInterceptor"/>
+            <ref bean="contextPropagationOutInterceptor"/>
+        </jaxrs:outInterceptors>
+    </jaxrs:server>
+
+    <jaxrs:server id="paymentsContainer" address="/accountmanagement/payments/v1" staticSubresourceResolution="true">
+        <jaxrs:serviceBeans>
+            <ref bean="paymentsService"/>
+        </jaxrs:serviceBeans>
+        <jaxrs:extensionMappings>
+            <entry key="xml" value="application/xml"/>
+            <entry key="json" value="application/json"/>
+        </jaxrs:extensionMappings>
+        <jaxrs:providers>
+            <bean class="com.stubhub.platform.utilities.webservice.security.ExtendedSecurityContextProvider"/>
+            <bean class="com.stubhub.domain.infrastructure.soa.server.context.SHServiceContextProvider"/>
+            <ref bean="newJsonProvider"/>
+            <ref bean="accountResponseHandler"/>
+            <bean class="org.apache.cxf.jaxrs.ext.search.SearchContextProvider"/>
+            <ref bean="exceptionProvider"/>
+        </jaxrs:providers>
+        <jaxrs:inInterceptors>
+            <bean class="org.apache.cxf.jaxrs.provider.jsonp.JsonpInInterceptor"/>
+        </jaxrs:inInterceptors>
+        <jaxrs:outInterceptors>
+            <bean class="org.apache.cxf.jaxrs.provider.jsonp.JsonpPreStreamInterceptor"/>
+            <bean class="org.apache.cxf.jaxrs.provider.jsonp.JsonpPostStreamInterceptor"/>
+            <ref bean="contextPropagationOutInterceptor"/>
+        </jaxrs:outInterceptors>
+    </jaxrs:server>
+
+    <jaxrs:server id="allPaymentsContainer" address="/accountmanagement/allpayments/v1"
+                  staticSubresourceResolution="true">
+        <jaxrs:serviceBeans>
+            <ref bean="allPaymentsService"/>
+        </jaxrs:serviceBeans>
+        <jaxrs:extensionMappings>
+            <entry key="json" value="application/json"/>
+        </jaxrs:extensionMappings>
+        <jaxrs:providers>
+            <bean class="com.stubhub.platform.utilities.webservice.security.ExtendedSecurityContextProvider"/>
+            <bean class="com.stubhub.domain.infrastructure.soa.server.context.SHServiceContextProvider"/>
+            <ref bean="newJsonProvider"/>
+            <ref bean="accountResponseHandler"/>
+            <bean class="org.apache.cxf.jaxrs.ext.search.SearchContextProvider"/>
+            <ref bean="exceptionProvider"/>
+        </jaxrs:providers>
+        <jaxrs:inInterceptors>
+            <bean class="org.apache.cxf.jaxrs.provider.jsonp.JsonpInInterceptor"/>
+        </jaxrs:inInterceptors>
+        <jaxrs:outInterceptors>
+            <bean class="org.apache.cxf.jaxrs.provider.jsonp.JsonpPreStreamInterceptor"/>
+            <bean class="org.apache.cxf.jaxrs.provider.jsonp.JsonpPostStreamInterceptor"/>
+            <ref bean="contextPropagationOutInterceptor"/>
+        </jaxrs:outInterceptors>
+    </jaxrs:server>
+
+    <jaxrs:server id="creditCardChargesContainer" address="/accountmanagement/creditcardcharges/v1"
+                  staticSubresourceResolution="true">
+        <jaxrs:serviceBeans>
+            <ref bean="creditCardChargesService"/>
+        </jaxrs:serviceBeans>
+        <jaxrs:extensionMappings>
+            <entry key="xml" value="application/xml"/>
+            <entry key="json" value="application/json"/>
+        </jaxrs:extensionMappings>
+        <jaxrs:providers>
+            <bean class="com.stubhub.platform.utilities.webservice.security.ExtendedSecurityContextProvider"/>
+            <bean class="com.stubhub.domain.infrastructure.soa.server.context.SHServiceContextProvider"/>
+            <ref bean="newJsonProvider"/>
+            <ref bean="accountResponseHandler"/>
+        </jaxrs:providers>
+        <jaxrs:inInterceptors>
+            <bean class="org.apache.cxf.jaxrs.provider.jsonp.JsonpInInterceptor"/>
+        </jaxrs:inInterceptors>
+        <jaxrs:outInterceptors>
+            <bean class="org.apache.cxf.jaxrs.provider.jsonp.JsonpPreStreamInterceptor"/>
+            <bean class="org.apache.cxf.jaxrs.provider.jsonp.JsonpPostStreamInterceptor"/>
+            <ref bean="contextPropagationOutInterceptor"/>
+        </jaxrs:outInterceptors>
+    </jaxrs:server>
+
+    <jaxrs:server id="creditMemosContainer" address="/accountmanagement/creditmemos/v1"
+                  staticSubresourceResolution="true">
+        <jaxrs:serviceBeans>
+            <ref bean="creditMemosService"/>
+        </jaxrs:serviceBeans>
+        <jaxrs:extensionMappings>
+            <entry key="xml" value="application/xml"/>
+            <entry key="json" value="application/json"/>
+        </jaxrs:extensionMappings>
+        <jaxrs:providers>
+            <bean class="com.stubhub.platform.utilities.webservice.security.ExtendedSecurityContextProvider"/>
+            <bean class="com.stubhub.domain.infrastructure.soa.server.context.SHServiceContextProvider"/>
+            <ref bean="newJsonProvider"/>
+            <ref bean="accountResponseHandler"/>
+        </jaxrs:providers>
+        <jaxrs:inInterceptors>
+            <bean class="org.apache.cxf.jaxrs.provider.jsonp.JsonpInInterceptor"/>
+        </jaxrs:inInterceptors>
+        <jaxrs:outInterceptors>
+            <bean class="org.apache.cxf.jaxrs.provider.jsonp.JsonpPreStreamInterceptor"/>
+            <bean class="org.apache.cxf.jaxrs.provider.jsonp.JsonpPostStreamInterceptor"/>
+            <ref bean="contextPropagationOutInterceptor"/>
+        </jaxrs:outInterceptors>
+    </jaxrs:server>
+    
+        <jaxrs:server id="creditMemosIndyContainer" address="/accountmanagement/cs/"
+                  staticSubresourceResolution="true">
+        <jaxrs:serviceBeans>
+            <ref bean="indyCreditMemosService"/>
+        </jaxrs:serviceBeans>
+        <jaxrs:extensionMappings>
+            <entry key="xml" value="application/xml"/>
+            <entry key="json" value="application/json"/>
+        </jaxrs:extensionMappings>
+        <jaxrs:providers>
+            <bean class="com.stubhub.platform.utilities.webservice.security.ExtendedSecurityContextProvider"/>
+            <bean class="com.stubhub.domain.infrastructure.soa.server.context.SHServiceContextProvider"/>
+            <ref bean="newJsonProvider"/>
+            <ref bean="accountResponseHandler"/>
+        </jaxrs:providers>
+        <jaxrs:inInterceptors>
+            <bean class="org.apache.cxf.jaxrs.provider.jsonp.JsonpInInterceptor"/>
+        </jaxrs:inInterceptors>
+        <jaxrs:outInterceptors>
+            <bean class="org.apache.cxf.jaxrs.provider.jsonp.JsonpPreStreamInterceptor"/>
+            <bean class="org.apache.cxf.jaxrs.provider.jsonp.JsonpPostStreamInterceptor"/>
+            <ref bean="contextPropagationOutInterceptor"/>
+        </jaxrs:outInterceptors>
+    </jaxrs:server>
+
+    <jaxrs:server id="salesSummaryContainer" address="/accountmanagement/saleshistory/v1"
+                  staticSubresourceResolution="true">
+        <jaxrs:serviceBeans>
+            <ref bean="salesHistoryService"/>
+        </jaxrs:serviceBeans>
+        <jaxrs:extensionMappings>
+            <entry key="xml" value="application/xml"/>
+            <entry key="json" value="application/json"/>
+        </jaxrs:extensionMappings>
+        <jaxrs:providers>
+            <bean class="com.stubhub.platform.utilities.webservice.security.ExtendedSecurityContextProvider"/>
+            <bean class="com.stubhub.domain.infrastructure.soa.server.context.SHServiceContextProvider"/>
+            <ref bean="newJsonProvider"/>
+            <ref bean="accountResponseHandler"/>
+        </jaxrs:providers>
+        <jaxrs:inInterceptors>
+            <bean class="org.apache.cxf.jaxrs.provider.jsonp.JsonpInInterceptor"/>
+        </jaxrs:inInterceptors>
+        <jaxrs:outInterceptors>
+            <bean class="org.apache.cxf.jaxrs.provider.jsonp.JsonpPreStreamInterceptor"/>
+            <bean class="org.apache.cxf.jaxrs.provider.jsonp.JsonpPostStreamInterceptor"/>
+            <ref bean="contextPropagationOutInterceptor"/>
+        </jaxrs:outInterceptors>
+    </jaxrs:server>
+
+    <jaxrs:server id="accountContainer" address="/accountmanagement" staticSubresourceResolution="true">
+        <jaxrs:serviceBeans>
+            <ref bean="accountService"/>
+        </jaxrs:serviceBeans>
+        <jaxrs:extensionMappings>
+            <entry key="xml" value="application/xml"/>
+            <entry key="json" value="application/json"/>
+        </jaxrs:extensionMappings>
+        <jaxrs:providers>
+            <bean class="com.stubhub.platform.utilities.webservice.security.ExtendedSecurityContextProvider"/>
+            <bean class="com.stubhub.domain.infrastructure.soa.server.context.SHServiceContextProvider"/>
+            <bean class="com.stubhub.domain.i18n.infra.soa.server.context.I18nServiceContextProvider" />
+            <ref bean="jsonProvider"/>
+            <ref bean="accountResponseHandler"/>
+            <bean class="com.stubhub.domain.infrastructure.soa.server.exception.SHExceptionMapper"/>
+        </jaxrs:providers>
+        <jaxrs:inInterceptors>
+            <bean class="org.apache.cxf.jaxrs.provider.jsonp.JsonpInInterceptor"/>
+        </jaxrs:inInterceptors>
+        <jaxrs:outInterceptors>
+            <bean class="org.apache.cxf.jaxrs.provider.jsonp.JsonpPreStreamInterceptor"/>
+            <bean class="org.apache.cxf.jaxrs.provider.jsonp.JsonpPostStreamInterceptor"/>
+            <ref bean="contextPropagationOutInterceptor"/>
+        </jaxrs:outInterceptors>
+        <jaxrs:features>
+            <cxf:logging/>
+        </jaxrs:features>
+    </jaxrs:server>
+
+    <jaxrs:server id="invoiceContainer" address="/accountmanagement/invoice/v1" staticSubresourceResolution="true">
+        <jaxrs:serviceBeans>
+            <ref bean="invoiceService"/>
+        </jaxrs:serviceBeans>
+        <jaxrs:extensionMappings>
+            <entry key="xml" value="application/xml"/>
+            <entry key="json" value="application/json"/>
+        </jaxrs:extensionMappings>
+        <jaxrs:providers>
+            <bean class="com.stubhub.platform.utilities.webservice.security.ExtendedSecurityContextProvider"/>
+            <bean class="org.codehaus.jackson.jaxrs.JacksonJsonProvider">
+                <property name="mapper">
+                    <bean class="org.codehaus.jackson.map.ObjectMapper">
+                        <property name="serializationConfig.dateFormat">
+                            <bean class="java.text.SimpleDateFormat">
+                                <constructor-arg value="yyyy-MM-dd'T'HH:mm:ss.SSZ"/>
+                            </bean>
+                        </property>
+                        <property name="deserializationConfig.dateFormat">
+                            <bean class="java.text.SimpleDateFormat">
+                                <constructor-arg value="yyyy-MM-dd'T'HH:mm:ss.SSZ"/>
+                            </bean>
+                        </property>
+                        <property name="serializationInclusion" value="NON_NULL"/>
+                    </bean>
+                </property>
+            </bean>
+            <ref bean="accountResponseHandler"/>
+            <ref bean="exceptionProvider"/>
+        </jaxrs:providers>
+        <jaxrs:inInterceptors>
+            <bean class="org.apache.cxf.jaxrs.provider.jsonp.JsonpInInterceptor"/>
+        </jaxrs:inInterceptors>
+        <jaxrs:outInterceptors>
+            <bean class="org.apache.cxf.jaxrs.provider.jsonp.JsonpPreStreamInterceptor"/>
+            <bean class="org.apache.cxf.jaxrs.provider.jsonp.JsonpPostStreamInterceptor"/>
+            <ref bean="contextPropagationOutInterceptor"/>
+        </jaxrs:outInterceptors>
+    </jaxrs:server>
+
+    <bean id="jsonProvider" class="org.codehaus.jackson.jaxrs.JacksonJsonProvider">
+        <property name="mapper">
+            <bean class="org.codehaus.jackson.map.ObjectMapper">
+                <property name="serializationConfig.dateFormat">
+                    <bean class="java.text.SimpleDateFormat">
+                        <constructor-arg value="yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"/>
+                    </bean>
+                </property>
+                <property name="deserializationConfig.dateFormat">
+                    <bean class="java.text.SimpleDateFormat">
+                        <constructor-arg value="yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"/>
+                    </bean>
+                </property>
+                <property name="serializationInclusion" value="NON_NULL"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="newJsonProvider" class="org.codehaus.jackson.jaxrs.JacksonJsonProvider">
+        <property name="mapper">
+            <bean class="org.codehaus.jackson.map.ObjectMapper">
+                <property name="serializationInclusion" value="NON_NULL"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+        <property name="targetObject">
+            <ref local="newJsonProvider"/>
+        </property>
+        <property name="targetMethod">
+            <value>configure</value>
+        </property>
+        <property name="arguments">
+            <list>
+                <util:constant static-field="org.codehaus.jackson.JsonParser$Feature.ALLOW_UNQUOTED_FIELD_NAMES"/>
+                <value type="boolean">true</value>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="contextPropagationOutInterceptor"
+          class="com.stubhub.platform.utilities.webservice.interceptor.out.ContextPropagationOutInterceptor"/>
+    <!--   	<bean id="shContextPropagationOutInterceptor" class="com.stubhub.domain.infrastructure.soa.client.context.SHServiceContextOutInterceptor" />  	 -->
+
+    <bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+        <property name="targetObject">
+            <ref local="jsonProvider"/>
+        </property>
+        <property name="targetMethod">
+            <value>configure</value>
+        </property>
+        <property name="arguments">
+            <list>
+                <util:constant static-field="org.codehaus.jackson.map.SerializationConfig$Feature.WRAP_ROOT_VALUE"/>
+                <value type="boolean">true</value>
+            </list>
+        </property>
+    </bean>
+    <bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+        <property name="targetObject">
+            <ref local="jsonProvider"/>
+        </property>
+        <property name="targetMethod">
+            <value>configure</value>
+        </property>
+        <property name="arguments">
+            <list>
+                <util:constant static-field="org.codehaus.jackson.map.DeserializationConfig$Feature.UNWRAP_ROOT_VALUE"/>
+                <value type="boolean">true</value>
+            </list>
+        </property>
+    </bean>
+
+    <context:component-scan
+            base-package="com.stubhub.domain.infrastructure.soa, com.stubhub.platform.utilities.webservice"/>
+
+    <!-- define a chain of filters -->
+    <bean id="filterChainProxy" class="org.springframework.security.web.FilterChainProxy">
+        <sec:filter-chain-map path-type="ant">
+            <sec:filter-chain pattern="/**" filters="ExtendedSecurityContextFilter,SHServiceContextFilter,I18nServiceContextFilter,MCIHeaderFilter"/>
+        </sec:filter-chain-map>
+    </bean>
+
+
+</beans>

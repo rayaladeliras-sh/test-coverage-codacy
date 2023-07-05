@@ -1,0 +1,9 @@
+<!DOCTYPE suite SYSTEM "http://beust.com/testng/testng-1.0.dtd" >
+<suite name="all-tests" data-provider-thread-count="128">
+    <test name="framework-classes" parallel="methods" thread-count="3">
+        <classes>
+            <class name="com.stubhub.test.platform.FunctionalTest"/>
+        </classes>
+
+    </test>
+</suite>

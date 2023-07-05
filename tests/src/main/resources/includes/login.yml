@@ -1,0 +1,28 @@
+type: sequenceCache
+id: getUserId
+key: 'userId'
+---
+include: user/update:acceptAllUserAgreement
+id: accept
+parameters: '{getUserId:sequenceCache.value}'
+---
+type: sql
+minCount: 0
+sql: update users  set password = secure_tools.encryptUserPwd('password'), hashed_password = null  where id={getUserId:sequenceCache.value} and password is null
+---
+type: sql
+comment: SQL Get User GUID
+verbose: true
+id: sqlGetUserGuid
+minCount: 1
+sql: select default_email, user_cookie_guid,secure_tools.decryptuserpwd(PASSWORD) as password from users where id={getUserId:sequenceCache.value}
+---
+maxRetries: 3
+include: stubhub.iam:web.login
+credentials:
+  username: '{sqlGetUserGuid:sql.rows[0].default_email}'
+  password: '{sqlGetUserGuid:sql.rows[0].password}'
+---
+maxRetries: 3
+include: stubhub.iam:token.init
+sessionId: '{web.login:response.body.login.session_id}'

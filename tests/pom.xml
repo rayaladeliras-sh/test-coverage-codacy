@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.stubhub.domain.account</groupId>
+        <artifactId>com.stubhub.domain.account</artifactId>
+        <version>1.0.278-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+    <artifactId>com.stubhub.domain.account.tests</artifactId>
+    <packaging>jar</packaging>
+    <name>Account Test</name>
+    <description>Account tests</description>
+    <properties>
+        <com.stubhub.test.platform.version>2.0.230 </com.stubhub.test.platform.version>
+        <org.springframework.tests.version>4.3.0.RELEASE</org.springframework.tests.version>
+        <com.stubhub.test.platform.utils.version>1.0.74</com.stubhub.test.platform.utils.version>
+        <com.stubhub.qe.stream.crm>1.16.133</com.stubhub.qe.stream.crm>
+    </properties>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.testng</groupId>
+                <artifactId>testng</artifactId>
+                <version>6.10</version>
+            </dependency>
+            <dependency>
+                <groupId>com.stubhub.test.platform</groupId>
+                <artifactId>com.stubhub.test.platform</artifactId>
+                <version>${com.stubhub.test.platform.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.oracle.jdbc</groupId>
+                        <artifactId>ojdbc8</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>com.stubhub.test.platform.utils</groupId>
+                <artifactId>com.stubhub.test.platform.utils</artifactId>
+                <version>${com.stubhub.test.platform.utils.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-test</artifactId>
+                <version>${org.springframework.tests.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-core</artifactId>
+                <version>${org.springframework.tests.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.ebay.testinfrastructure</groupId>
+                <!-- For UIAutomation with Test Data (Item/Users)creation abilities.Also includes service and DB-->
+                <artifactId>uiandtestdata</artifactId>
+                <!-- stable-SNAPSHOT version will fetch the latest of Breeze components automatically-->
+                <version>1.1.6</version>
+                <!-- We recommend inheriting version from the parent i.e. 'stable-SNAPSHOT' like above -->
+                <!-- but, if you prefer versioned modules of breeze-->
+            </dependency>
+            <dependency>
+                <groupId>com.stubhub.qe.stream.crm</groupId>
+                <artifactId>com.stubhub.qe.stream.crm.utility</artifactId>
+                <version>${com.stubhub.qe.stream.crm}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.stubhub.test.platform</groupId>
+            <artifactId>com.stubhub.test.platform</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.stubhub.test.platform.utils</groupId>
+            <artifactId>com.stubhub.test.platform.utils</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.ebay.testinfrastructure</groupId>
+            <!-- For UIAutomation with Test Data (Item/Users)creation abilities.Also includes service and DB-->
+            <artifactId>uiandtestdata</artifactId>
+        </dependency>
+        <!-- maui -->
+        <dependency>
+            <groupId>com.stubhub.qe.stream.crm</groupId>
+            <artifactId>com.stubhub.qe.stream.crm.utility</artifactId>
+        </dependency>
+    </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+    <profiles>
+        <profile>
+            <id>functests</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <includes>
+                                <include>%regex[.*[Test|Tests].java]</include>
+                            </includes>
+                            <suiteXmlFiles>
+                                <suiteXmlFile>src/main/resources/testng.xml</suiteXmlFile>
+                            </suiteXmlFiles>
+                            <systemPropertyVariables>
+                                <ENV>stubhub</ENV>
+                                <RESOURCE>src/main/resources</RESOURCE>
+                            </systemPropertyVariables>
+                            <testSourceDirectory>${basedir}/src/main/java/</testSourceDirectory>
+                            <testClassesDirectory>${project.build.directory}/classes/</testClassesDirectory>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>

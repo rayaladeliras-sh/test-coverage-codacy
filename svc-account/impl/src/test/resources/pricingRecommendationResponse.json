@@ -1,0 +1,147 @@
+{
+  "pricingRecommendations": [
+    {
+      "listingId": 1212732400,
+      "eventId": 9566782,
+      "sectionId": 126274,
+      "row": "16",
+      "seats": "8,9",
+      "currentPrice": 295,
+      "upperboundPrice": 243,
+      "lowerboundPrice": 169,
+      "suggestedPrice": 234,
+      "sectionMinPrice": 225,
+      "sectionMaxPrice": 609.56,
+      "zoneMinPrice": 225,
+      "zoneMaxPrice": 609.56,
+      "eventMinPrice": 67,
+      "eventMaxPrice": 515.02,
+      "isOverPriced": 1
+    },
+    {
+      "listingId": 1209269254,
+      "eventId": 9566782,
+      "sectionId": 126302,
+      "row": "9",
+      "seats": "7,8,9,10",
+      "currentPrice": 550,
+      "upperboundPrice": 314,
+      "lowerboundPrice": 218,
+      "suggestedPrice": 301,
+      "sectionMinPrice": 550,
+      "sectionMaxPrice": 1927.5,
+      "zoneMinPrice": 550,
+      "zoneMaxPrice": 1927.5,
+      "eventMinPrice": 67,
+      "eventMaxPrice": 515.02
+    },
+    {
+      "listingId": 12092692540,
+      "eventId": 9566782,
+      "sectionId": 126302,
+      "row": "9",
+      "seats": "7,8,9,10",
+      "currentPrice": 550
+    },
+
+    {
+      "listingId": 120926925412,
+      "eventId": 9566782,
+      "sectionId": 126302,
+      "row": "9",
+      "seats": "7,8,9,10",
+      "currentPrice": 550,
+      "isOverPriced": 1
+    },
+
+    {
+      "listingId": 12092692541,
+      "eventId": 9566782,
+      "sectionId": 126302,
+      "row": "9",
+      "seats": "7,8,9,10",
+      "currentPrice": 550,
+      "isUnderPriced": 1
+    },
+    {
+      "listingId": 12092692542,
+      "eventId": 9566782,
+      "sectionId": 126302,
+      "row": "9",
+      "seats": "7,8,9,10",
+      "currentPrice": 550,
+      "upperboundPrice": 314
+    },
+    {
+      "listingId": 12092692543,
+      "eventId": 9566782,
+      "sectionId": 126302,
+      "row": "9",
+      "seats": "7,8,9,10",
+      "currentPrice": 550,
+      "lowerboundPrice": 21
+    },
+    {
+      "listingId": 12092692544,
+      "eventId": 9566782,
+      "sectionId": 126302,
+      "row": "9",
+      "seats": "7,8,9,10",
+      "currentPrice": 550,
+      "suggestedPrice": 301
+    },
+    {
+      "listingId": 12092692545,
+      "eventId": 9566782,
+      "sectionId": 126302,
+      "row": "9",
+      "seats": "7,8,9,10",
+      "currentPrice": 550,
+      "sectionMinPrice": 550
+    },
+    {
+      "listingId": 12092692546,
+      "eventId": 9566782,
+      "sectionId": 126302,
+      "row": "9",
+      "seats": "7,8,9,10",
+      "currentPrice": 550,
+      "sectionMaxPrice": 1927.5
+    },
+    {
+      "listingId": 12092692547,
+      "eventId": 9566782,
+      "sectionId": 126302,
+      "row": "9",
+      "seats": "7,8,9,10",
+      "currentPrice": 550,
+      "zoneMinPrice": 550
+    },
+    {
+      "listingId": 12092692548,
+      "eventId": 9566782,
+      "sectionId": 126302,
+      "row": "9",
+      "seats": "7,8,9,10",
+      "zoneMaxPrice": 1927.5
+    },
+    {
+      "listingId": 12092692549,
+      "eventId": 9566782,
+      "sectionId": 126302,
+      "row": "9",
+      "seats": "7,8,9,10",
+      "currentPrice": 550,
+      "eventMinPrice": 67
+    },
+    {
+      "listingId": 120926925410,
+      "eventId": 9566782,
+      "sectionId": 126302,
+      "row": "9",
+      "seats": "7,8,9,10",
+      "currentPrice": 550,
+      "eventMaxPrice": 67
+    }
+  ]
+}
